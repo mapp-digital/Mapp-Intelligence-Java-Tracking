@@ -1,0 +1,26 @@
+# JetBrains
+.idea
+.project
+.settings
+.idea/*
+**/.idea/*
+*.iml
+**/*.iml
+
+# VS Code
+.vscode/*
+**/.vscode/*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+**/.DS_Store
+
+# Target
+target/*
+**/target/*
+
+hsperfdata_root/*

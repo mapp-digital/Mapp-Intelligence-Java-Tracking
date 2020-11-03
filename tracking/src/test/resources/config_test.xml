@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <!-- [tracking] -->
+    <entry key="tracking.trackId">123451234512345</entry>
+    <entry key="tracking.trackDomain">analytics01.wt-eu02.net</entry>
+    <entry key="tracking.deactivate">false</entry>
+    <entry key="tracking.domain">sub.domain.tld,foo.bar</entry>
+    <entry key="tracking.useParamsForDefaultPageName">aa,bb,cc</entry>
+
+    <!-- [consumer] -->
+    <entry key="consumer.consumerType">FILE</entry>
+    <entry key="consumer.filePath" />
+    <entry key="consumer.filePrefix" />
+    <entry key="consumer.maxAttempt">1</entry>
+    <entry key="consumer.attemptTimeout">100</entry>
+    <entry key="consumer.maxBatchSize">50</entry>
+    <entry key="consumer.maxQueueSize">1000</entry>
+    <entry key="consumer.maxFileLines">1000</entry>
+    <entry key="consumer.maxFileDuration">180000</entry>
+    <entry key="consumer.maxFileSize">24576</entry>
+    <entry key="consumer.forceSSL">true</entry>
+</properties>

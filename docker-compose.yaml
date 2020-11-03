@@ -1,0 +1,28 @@
+version: "3.3"
+
+services:
+  java:
+    image: openjdk:${JAVA_VERSION}
+    working_dir: /app
+    environment:
+      BUILD_TYPE: ${BUILD_TYPE}
+      USER_ID: ${USER_ID}
+      GROUP_ID: ${GROUP_ID}
+    volumes:
+      - "./:/app"
+    entrypoint: ./java-entrypoint.sh
+
+  shop:
+    image: tomcat:8.5.40-jre8
+    working_dir: /app
+    environment:
+      USER_ID: ${USER_ID}
+      GROUP_ID: ${GROUP_ID}
+    ports:
+      - "8081:8080"
+      - "8443:8443"
+    volumes:
+      - "./:/app"
+      - "./shop-example/ssl:/usr/local/tomcat/ssl"
+      - "./shop-example/server.xml:/usr/local/tomcat/conf/server.xml"
+    entrypoint: ./demo-entrypoint.sh
