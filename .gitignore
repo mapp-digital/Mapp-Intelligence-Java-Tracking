@@ -23,4 +23,8 @@ Desktop.ini
 target/*
 **/target/*
 
+*.releaseBackup
+**/*.releaseBackup
+release.properties
+**/release.properties
 hsperfdata_root/*
