@@ -72,11 +72,10 @@ fi
 if [ "${BUILD_TYPE}" = "release" ]; then
     echo "release java lib"
 
-    cd tracking  || exit 1
     if [ "${APT_GET}" = "file" ]; then
-        su -c "mvn release:clean" -m "${USER_NAME}"
-        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
-        su -c "mvn release:perform" -m "${USER_NAME}"
+        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} release:clean" -m "${USER_NAME}"
+        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} --batch-mode release:prepare-with-pom -Dresume=false" -m "${USER_NAME}"
+        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} release:perform" -m "${USER_NAME}"
         su -c "git push --tags" -m "${USER_NAME}"
         su -c "git push origin master" -m "${USER_NAME}"
     else
@@ -87,20 +86,35 @@ if [ "${BUILD_TYPE}" = "release" ]; then
         sudo -su ${USER_NAME} git push origin master
     fi
 
-    cd ../cronjob  || exit 1
-    if [ "${APT_GET}" = "file" ]; then
-        su -c "mvn release:clean" -m "${USER_NAME}"
-        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
-        su -c "mvn release:perform" -m "${USER_NAME}"
-        su -c "git push --tags" -m "${USER_NAME}"
-        su -c "git push origin master" -m "${USER_NAME}"
-    else
-        sudo -su ${USER_NAME} mvn release:clean
-        sudo -su ${USER_NAME} mvn --batch-mode release -Dresume=false
-        sudo -su ${USER_NAME} mvn release:perform
-        sudo -su ${USER_NAME} git push --tags
-        sudo -su ${USER_NAME} git push origin master
-    fi
+#    cd tracking  || exit 1
+#    if [ "${APT_GET}" = "file" ]; then
+#        su -c "mvn release:clean" -m "${USER_NAME}"
+#        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
+#        su -c "mvn release:perform" -m "${USER_NAME}"
+#        su -c "git push --tags" -m "${USER_NAME}"
+#        su -c "git push origin master" -m "${USER_NAME}"
+#    else
+#        sudo -su ${USER_NAME} mvn release:clean
+#        sudo -su ${USER_NAME} mvn --batch-mode release:prepare -Dresume=false
+#        sudo -su ${USER_NAME} mvn release:perform
+#        sudo -su ${USER_NAME} git push --tags
+#        sudo -su ${USER_NAME} git push origin master
+#    fi
+#
+#    cd ../cronjob  || exit 1
+#    if [ "${APT_GET}" = "file" ]; then
+#        su -c "mvn release:clean" -m "${USER_NAME}"
+#        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
+#        su -c "mvn release:perform" -m "${USER_NAME}"
+#        su -c "git push --tags" -m "${USER_NAME}"
+#        su -c "git push origin master" -m "${USER_NAME}"
+#    else
+#        sudo -su ${USER_NAME} mvn release:clean
+#        sudo -su ${USER_NAME} mvn --batch-mode release -Dresume=false
+#        sudo -su ${USER_NAME} mvn release:perform
+#        sudo -su ${USER_NAME} git push --tags
+#        sudo -su ${USER_NAME} git push origin master
+#    fi
 
     exit 0
 fi
