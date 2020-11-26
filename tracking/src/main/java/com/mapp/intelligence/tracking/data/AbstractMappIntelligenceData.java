@@ -16,7 +16,7 @@ public abstract class AbstractMappIntelligenceData {
     /**
      * @param params Category or parameter map
      * @param key    Category or parameter query parameter (e.g. cg, cp, uc, ...)
-     * @return Map<String, String>
+     * @return Map(String, String)
      */
     protected final Map<String, String> getParameterList(Map<Integer, String> params, String key) {
         Map<String, String> data = new HashMap<>();
@@ -28,14 +28,14 @@ public abstract class AbstractMappIntelligenceData {
     }
 
     /**
-     * @return Map<String, Object>
+     * @return Map(String, Object)
      */
     public final Map<String, Object> getData() {
         return this.toMap();
     }
 
     /**
-     * @return Map<String, String>
+     * @return Map(String, String)
      */
     @SuppressWarnings("unchecked")
     public final Map<String, String> getQueryParameter() {
@@ -69,12 +69,12 @@ public abstract class AbstractMappIntelligenceData {
     }
 
     /**
-     * @return Map<String, String>
+     * @return Map(String, String)
      */
     protected abstract Map<String, String> getQueryList();
 
     /**
-     * @return Map<String, Object>
+     * @return Map(String, Object)
      */
     protected abstract Map<String, Object> toMap();
 }

@@ -24,7 +24,7 @@ public class MappIntelligenceProductCollection {
     }
 
     /**
-     * @return List<MappIntelligenceProduct>
+     * @return List(MappIntelligenceProduct)
      */
     public List<MappIntelligenceProduct> build() {
         return data;

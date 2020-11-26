@@ -228,7 +228,7 @@ public class MappIntelligenceConfig {
      * @param value Origin value
      * @param def Default value
      *
-     * @return Map<String, String>
+     * @return Map(String, String)
      */
     private Map<String, String> getOrDefault(Map<String, String> value, Map<String, String> def) {
         return (value != null) ? value : def;
@@ -238,7 +238,7 @@ public class MappIntelligenceConfig {
      * @param value Origin value
      * @param def Default value
      *
-     * @return List<String>
+     * @return List(String)
      */
     private List<String> getOrDefault(List<String> value, List<String> def) {
         return (value != null) ? value : def;
@@ -557,7 +557,7 @@ public class MappIntelligenceConfig {
     }
 
     /**
-     * @return Map<String, Object>
+     * @return Map(String, Object)
      */
     public Map<String, Object> build() {
         if (this.domain.isEmpty()) {

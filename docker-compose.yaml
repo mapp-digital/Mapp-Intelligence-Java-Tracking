@@ -10,6 +10,10 @@ services:
       GROUP_ID: ${GROUP_ID}
     volumes:
       - "./:/app"
+      - "${HOME}/.m2:/home/webtrekk/.m2"
+      - "${HOME}/.gnupg:/home/webtrekk/.gnupg"
+      - "${HOME}/.ssh:/home/webtrekk/.ssh"
+      - "${HOME}/.gitconfig:/home/webtrekk/.gitconfig"
     entrypoint: ./java-entrypoint.sh
 
   shop:

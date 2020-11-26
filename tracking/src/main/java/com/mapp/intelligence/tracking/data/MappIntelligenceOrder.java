@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Mapp Intelligence can also track orders. To do this, the order value is transmitted along with the order number.
- * "0" values are permitted. A list of tracked orders can be analyzed in Mapp Intelligence under "E-Commerce >
+ * "0" values are permitted. A list of tracked orders can be analyzed in Mapp Intelligence under "E-Commerce -
  * Orders separately".
  *
  * The difference to product tracking is that the information refers to the total order value that is transmitted

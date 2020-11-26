@@ -77,7 +77,7 @@ public class MappIntelligenceDataMap {
     }
 
     /**
-     * @return Map<String, Object>
+     * @return Map(String, Object)
      */
     public Map<String, Object> build() {
         return data;

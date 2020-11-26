@@ -8,6 +8,7 @@ MAVEN_VERSION=3.3.9
 USER_HOME_DIR="/root"
 USER_NAME=webtrekk
 GROUP_NAME=webtrekk
+EXLUDE_SHOP_EXAMPLE="--projects=!com.mapp.intelligence.tracking:shop-example,!com.mapp.intelligence.tracking:mapp-intelligence-java-tracking"
 
 if [ "${TEST_VERSION}" != "latest" ]; then
     TEST_VERSION="14"
@@ -22,7 +23,7 @@ if [ "${APT_GET}" = "file" ]; then
 elif [ "${YUM}" = "file" ]; then
     yum install -y curl tar bash make sudo which
 else
-    microdnf update && microdnf install curl tar bash make sudo which
+    microdnf install curl tar bash make sudo which
 fi
 
 mkdir -p /usr/share/maven
@@ -33,6 +34,7 @@ echo "add environment variables"
 export MAVEN_HOME=/usr/share/maven
 export MAVEN_CONFIG="${USER_HOME_DIR}/.m2"
 export MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+export HOME="/home/${USER_NAME}"
 
 echo "create user and user group"
 if [ "${APT_GET}" = "file" ]; then
@@ -50,46 +52,66 @@ cd /app || exit 1
 
 echo "install maven dependency"
 if [ "${APT_GET}" = "file" ]; then
-    su -c "mvn -T 1C install && rm -rf target" -m "${USER_NAME}"
+    su -c "mvn -T 1C ${EXLUDE_SHOP_EXAMPLE} install" -m "${USER_NAME}"
 else
-    sudo -su ${USER_NAME} mvn -T 1C install && rm -rf target
+    sudo -su ${USER_NAME} mvn -T 1C "${EXLUDE_SHOP_EXAMPLE}" install
 fi
 
-if [ "${BUILD_TYPE}" != "build" ]; then
+if [ "${BUILD_TYPE}" = "test" ]; then
     echo "test java lib"
 
-    cd ./tracking || exit 1
     if [ "${APT_GET}" = "file" ]; then
-        su -c "mvn clean test jacoco:report" -m "${USER_NAME}"
+        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report" -m "${USER_NAME}"
     else
-        sudo -su ${USER_NAME} mvn clean test jacoco:report
+        sudo -su ${USER_NAME} mvn "${EXLUDE_SHOP_EXAMPLE}" clean test jacoco:report
     fi
 
-    cd ./../cronjob || exit 1
+    exit 0
+fi
+
+if [ "${BUILD_TYPE}" = "release" ]; then
+    echo "release java lib"
+
+    cd tracking  || exit 1
     if [ "${APT_GET}" = "file" ]; then
-        su -c "mvn clean test jacoco:report" -m "${USER_NAME}"
+        su -c "mvn release:clean" -m "${USER_NAME}"
+        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
+        su -c "mvn release:perform" -m "${USER_NAME}"
+        su -c "git push --tags" -m "${USER_NAME}"
+        su -c "git push origin master" -m "${USER_NAME}"
     else
-        sudo -su ${USER_NAME} mvn clean test jacoco:report
+        sudo -su ${USER_NAME} mvn release:clean
+        sudo -su ${USER_NAME} mvn --batch-mode release:prepare -Dresume=false
+        sudo -su ${USER_NAME} mvn release:perform
+        sudo -su ${USER_NAME} git push --tags
+        sudo -su ${USER_NAME} git push origin master
+    fi
+
+    cd ../cronjob  || exit 1
+    if [ "${APT_GET}" = "file" ]; then
+        su -c "mvn release:clean" -m "${USER_NAME}"
+        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
+        su -c "mvn release:perform" -m "${USER_NAME}"
+        su -c "git push --tags" -m "${USER_NAME}"
+        su -c "git push origin master" -m "${USER_NAME}"
+    else
+        sudo -su ${USER_NAME} mvn release:clean
+        sudo -su ${USER_NAME} mvn --batch-mode release -Dresume=false
+        sudo -su ${USER_NAME} mvn release:perform
+        sudo -su ${USER_NAME} git push --tags
+        sudo -su ${USER_NAME} git push origin master
     fi
 
     exit 0
 fi
 
 echo "test, build and deploy java lib"
-cd ./tracking || exit 1
 if [ "${APT_GET}" = "file" ]; then
-    su -c "mvn clean checkstyle:check package -B" -m "${USER_NAME}"
-    su -c "mv ./target/tracking-0.0.1.jar ./../dist/mapp-intelligence-java-tracking-0.0.1.jar" -m "${USER_NAME}"
+    su -c "mvn ${EXLUDE_SHOP_EXAMPLE} clean checkstyle:check package -B" -m "${USER_NAME}"
+    su -c "cp ./tracking/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar" -m "${USER_NAME}"
+    su -c "cp ./cronjob/target/mapp-intelligence-java-cronjob.jar ./dist/mapp-intelligence-java-cronjob.jar" -m "${USER_NAME}"
 else
-    sudo -su ${USER_NAME}  mvn clean checkstyle:check package -B
-    sudo -su ${USER_NAME}  mv ./target/tracking-0.0.1.jar ./../dist/mapp-intelligence-java-tracking-0.0.1.jar
-fi
-
-cd ./../cronjob || exit 1
-if [ "${APT_GET}" = "file" ]; then
-    su -c "mvn clean checkstyle:check package -B" -m "${USER_NAME}"
-    su -c "mv ./target/cronjob-0.0.1.jar ./../dist/mapp-intelligence-java-cronjob-0.0.1.jar" -m "${USER_NAME}"
-else
-    sudo -su ${USER_NAME}  mvn clean checkstyle:check package -B
-    sudo -su ${USER_NAME}  mv ./target/cronjob-0.0.1.jar ./../dist/mapp-intelligence-java-cronjob-0.0.1.jar
+    sudo -su ${USER_NAME} mvn "${EXLUDE_SHOP_EXAMPLE}" clean checkstyle:check package -B
+    sudo -su ${USER_NAME} cp ./tracking/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
+    sudo -su ${USER_NAME} cp ./cronjob/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
 fi

@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Campaign tracking is configured in the Webtrekk tool (Configuration > Marketing Configuration). Without this
+ * Campaign tracking is configured in the Webtrekk tool (Configuration - Marketing Configuration). Without this
  * configuration, no campaign information such as campaign clicks will be collected. Visits to certain pages or
  * the entry of defined links can be tracked as campaign clicks. Most importantly, campaign tracking uses specific
- * parameters – so-called media codes - that are added to the target URLs of the ads.
+ * parameters - so-called media codes - that are added to the target URLs of the ads.
  *
  * Using a media code improves the accuracy of the data collected with the library. Media codes can also be
  * overwritten or supplemented with additional information using campaign parameters.

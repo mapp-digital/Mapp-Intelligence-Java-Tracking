@@ -2,15 +2,20 @@
 
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
+JAVADOC_HOME := $(shell which javadoc)
 
 export USER_ID
 export GROUP_ID
+export JAVADOC_HOME
 
 build:
 	BUILD_TYPE="build" JAVA_VERSION="8" bash -c "docker-compose build && docker-compose run java && docker-compose down --volumes"
 
 test:
 	BUILD_TYPE="test" JAVA_VERSION="$(JAVA_VERSION)" bash -c "docker-compose build && docker-compose run java && docker-compose down --volumes"
+
+release:
+	BUILD_TYPE="release" JAVA_VERSION="8" bash -c "docker-compose build && docker-compose run java && docker-compose down --volumes"
 
 demo:
 	bash -c "docker-compose build && docker-compose up shop"

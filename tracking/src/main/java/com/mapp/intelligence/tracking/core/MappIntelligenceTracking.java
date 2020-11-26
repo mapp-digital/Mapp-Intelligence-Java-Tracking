@@ -66,7 +66,7 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
     /**
      * @param productInformation List of products
      *
-     * @return Map<String, String>
+     * @return Map(String, String)
      */
     private Map<String, String> mergeProducts(List<Map<String, String>> productInformation) {
         Map<String, String[]> requestInformation = new HashMap<>();

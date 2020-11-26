@@ -65,7 +65,7 @@ public class MappIntelligenceFileTest {
             MappIntelligenceFile.getLogFiles(FILE_PATH, FILE_PREFIX);
             fail();
         } catch (Exception e) {
-            assertEquals("Request log files '" + FILE_PATH + "' not found", e.getMessage());
+            assertTrue(e.getMessage().contains("Request log files '" + FILE_PATH + "' not found"));
         }
     }
 
@@ -75,7 +75,7 @@ public class MappIntelligenceFileTest {
             MappIntelligenceFile.getLogFiles(FILE_PATH + "foo/", FILE_PREFIX);
             fail();
         } catch (Exception e) {
-            assertEquals("Request log files '" + FILE_PATH + "foo/' not found", e.getMessage());
+            assertTrue(e.getMessage().contains("Request log files '" + FILE_PATH + "foo/' not found"));
         }
     }
 

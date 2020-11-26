@@ -275,7 +275,7 @@ class MappIntelligenceEnrichment {
     }
 
     /**
-     * @return Map<String, String>
+     * @return Map(String, String)
      */
     protected final Map<String, String> getQueryMap() {
         Map<String, String> map = new HashMap<>();

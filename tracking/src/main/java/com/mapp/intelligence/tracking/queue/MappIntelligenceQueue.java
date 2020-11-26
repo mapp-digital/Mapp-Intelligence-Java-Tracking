@@ -110,7 +110,7 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
     }
 
     /**
-     * @return List<String>
+     * @return List(String)
      */
     public List<String> getQueue() {
         return this.queue;

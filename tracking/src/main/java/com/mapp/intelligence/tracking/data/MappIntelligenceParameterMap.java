@@ -25,7 +25,7 @@ public class MappIntelligenceParameterMap {
     }
 
     /**
-     * @return Map<String, String>
+     * @return Map(String, String)
      */
     public Map<String, String> build() {
         return data;
