@@ -129,6 +129,7 @@
                 <configuration>
                     <localCheckout>true</localCheckout>
                     <pushChanges>true</pushChanges>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
                     <mavenExecutorId>forked-path</mavenExecutorId>
                     <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
