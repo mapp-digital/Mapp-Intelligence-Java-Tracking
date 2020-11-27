@@ -9,7 +9,7 @@
 
     <artifactId>cronjob</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.10-SNAPSHOT</version>
+    <version>0.0.10</version>
     <name>cronjob</name>
 
     <dependencies>
@@ -86,5 +86,6 @@
         <connection>scm:git:git://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
         <developerConnection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
         <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
-    </scm>
+      <tag>v0.0.10</tag>
+  </scm>
 </project>
