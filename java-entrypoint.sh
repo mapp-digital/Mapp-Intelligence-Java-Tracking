@@ -75,9 +75,9 @@ if [ "${BUILD_TYPE}" = "release" ]; then
     if [ "${APT_GET}" = "file" ]; then
         su -c "mvn ${EXLUDE_SHOP_EXAMPLE} release:clean" -m "${USER_NAME}"
         su -c "mvn ${EXLUDE_SHOP_EXAMPLE} --batch-mode release:prepare-with-pom -Dresume=false" -m "${USER_NAME}"
-        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} release:perform" -m "${USER_NAME}"
-        su -c "git push --tags" -m "${USER_NAME}"
-        su -c "git push origin master" -m "${USER_NAME}"
+#        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} release:perform" -m "${USER_NAME}"
+#        su -c "git push --tags" -m "${USER_NAME}"
+#        su -c "git push origin master" -m "${USER_NAME}"
     else
         sudo -su ${USER_NAME} mvn release:clean
         sudo -su ${USER_NAME} mvn --batch-mode release:prepare -Dresume=false

@@ -7,7 +7,7 @@
     <groupId>com.mapp.intelligence.tracking</groupId>
     <artifactId>mapp-intelligence-java-tracking</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1</version>
+    <version>0.0.10-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -131,6 +131,7 @@
                     <pushChanges>true</pushChanges>
                     <mavenExecutorId>forked-path</mavenExecutorId>
                     <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
                 </configuration>
                 <dependencies>
                     <dependency>
