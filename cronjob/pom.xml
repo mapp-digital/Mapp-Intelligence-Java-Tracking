@@ -9,7 +9,7 @@
 
     <artifactId>cronjob</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.10</version>
+    <version>0.0.10-SNAPSHOT</version>
     <name>cronjob</name>
 
     <dependencies>
