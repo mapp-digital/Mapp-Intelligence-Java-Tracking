@@ -3,7 +3,7 @@
     <parent>
         <artifactId>mapp-intelligence-java-tracking</artifactId>
         <groupId>com.mapp.intelligence.tracking</groupId>
-        <version>0.0.13</version>
+        <version>0.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,8 +13,6 @@
     <name>tracking</name>
 
     <build>
-        <finalName>mapp-intelligence-java-${project.artifactId}</finalName>
-
         <resources>
             <resource>
                 <directory>src/main/templates</directory>

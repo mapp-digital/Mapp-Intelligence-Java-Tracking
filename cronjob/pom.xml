@@ -3,13 +3,13 @@
     <parent>
         <artifactId>mapp-intelligence-java-tracking</artifactId>
         <groupId>com.mapp.intelligence.tracking</groupId>
-        <version>0.0.13</version>
+        <version>0.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>cronjob</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.14-SNAPSHOT</version>
+    <version>0.0.15-SNAPSHOT</version>
     <name>cronjob</name>
 
     <dependencies>
@@ -19,14 +19,12 @@
             <version>1.4</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>com.mapp.intelligence.tracking</groupId>
             <artifactId>tracking</artifactId>
         </dependency>
     </dependencies>
 
     <build>
-        <finalName>mapp-intelligence-java-${project.artifactId}</finalName>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

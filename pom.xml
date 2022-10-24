@@ -7,7 +7,7 @@
     <groupId>com.mapp.intelligence.tracking</groupId>
     <artifactId>mapp-intelligence-java-tracking</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.13</version>
+    <version>0.0.1</version>
 
     <licenses>
         <license>
