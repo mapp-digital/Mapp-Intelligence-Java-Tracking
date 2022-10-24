@@ -9,7 +9,7 @@
 
     <artifactId>cronjob</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.15-SNAPSHOT</version>
+    <version>0.0.16-SNAPSHOT</version>
     <name>cronjob</name>
 
     <dependencies>
@@ -25,6 +25,8 @@
     </dependencies>
 
     <build>
+        <finalName>mapp-intelligence-java-cronjob</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
