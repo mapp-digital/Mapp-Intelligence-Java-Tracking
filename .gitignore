@@ -29,3 +29,4 @@ release.properties
 **/release.properties
 hsperfdata_root/*
 java-version.txt
+**/release-pom.xml
