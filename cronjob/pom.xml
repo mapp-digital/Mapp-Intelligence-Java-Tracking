@@ -21,6 +21,7 @@
         <dependency>
             <groupId>com.mapp.intelligence.tracking</groupId>
             <artifactId>tracking</artifactId>
+            <version>0.0.16</version>
         </dependency>
     </dependencies>
 
