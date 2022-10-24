@@ -76,6 +76,7 @@ public class MappIntelligenceTrackingTest {
 
         String request = requests.get(0);
         assertTrue(request.matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.+"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
@@ -89,6 +90,7 @@ public class MappIntelligenceTrackingTest {
 
         String request = requests.get(0);
         assertTrue(request.matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.+"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
@@ -152,6 +154,7 @@ public class MappIntelligenceTrackingTest {
 
         String request = requests.get(0);
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.+"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
@@ -196,6 +199,7 @@ public class MappIntelligenceTrackingTest {
         assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
         assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
         assertTrue(request.matches(".*&st=conf.*"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
@@ -235,6 +239,7 @@ public class MappIntelligenceTrackingTest {
 
         String request = requests.get(0);
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.+"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
@@ -309,6 +314,7 @@ public class MappIntelligenceTrackingTest {
         assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
         assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
         assertTrue(request.matches(".*&st=conf.*"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
@@ -331,6 +337,7 @@ public class MappIntelligenceTrackingTest {
 
         String request = requests.get(0);
         assertTrue(request.matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.*"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test

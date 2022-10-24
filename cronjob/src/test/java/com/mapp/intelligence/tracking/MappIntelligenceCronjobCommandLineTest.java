@@ -2,9 +2,13 @@ package com.mapp.intelligence.tracking;
 
 import java.io.File;
 import java.security.Permission;
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-public class MappIntelligenceCronjobCommandLineTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+
+public class MappIntelligenceCronjobCommandLineTest {
     private static final String FILE_PATH = System.getProperty("user.dir") + "/src/test/resources/";
     private static final String FILE_PREFIX = "MappIntelligenceRequests";
     private static final String TEMPORARY_FILE_EXTENSION = ".tmp";
@@ -37,21 +41,20 @@ public class MappIntelligenceCronjobCommandLineTest extends TestCase {
         }
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         System.setSecurityManager(new NoExitSecurityManager());
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, TEMPORARY_FILE_EXTENSION);
         MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, LOG_FILE_EXTENSION);
 
         System.setSecurityManager(null); // or save and restore original
-        super.tearDown();
     }
 
+    @Test
     public void testConstructor() {
         try {
             new MappIntelligenceCronjobCommandLine();
@@ -60,6 +63,7 @@ public class MappIntelligenceCronjobCommandLineTest extends TestCase {
         }
     }
 
+    @Test
     public void testMappIntelligenceCronjobCommandLine1() {
         try {
             MappIntelligenceCronjobCommandLine.main(new String[0]);
@@ -68,6 +72,7 @@ public class MappIntelligenceCronjobCommandLineTest extends TestCase {
         }
     }
 
+    @Test
     public void testMappIntelligenceCronjobCommandLine2() {
         String[] args = ("-c " + CONFIG_FILE + " -f " + FILE_PATH + " -p " + FILE_PREFIX).split(" ");
 
@@ -78,6 +83,7 @@ public class MappIntelligenceCronjobCommandLineTest extends TestCase {
         }
     }
 
+    @Test
     public void testMappIntelligenceCronjobCommandLine3() {
         File file = MappIntelligenceUnitUtil.createFile(FILE_PATH + FILE_PREFIX + "-1400000000000" + LOG_FILE_EXTENSION);
         MappIntelligenceUnitUtil.writeToFile(file.getAbsolutePath(), "\n\np=400,0\n\n");

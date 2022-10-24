@@ -34,6 +34,10 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
      */
     protected final String trackDomain;
     /**
+     * Identifier for tracking feature usage
+     */
+    protected final Integer statistics;
+    /**
      * Mapp Intelligence request queue.
      */
     protected final MappIntelligenceQueue queue;
@@ -52,6 +56,7 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
         MappIntelligenceLogger l = (MappIntelligenceLogger) mappIntelligenceConfig.get("logger");
         this.logger = new MappIntelligenceDebugLogger(l);
 
+        this.statistics = (Integer) mappIntelligenceConfig.get("statistics");
         this.deactivate = (boolean) mappIntelligenceConfig.get("deactivate");
         this.trackId = (String) mappIntelligenceConfig.get("trackId");
         this.trackDomain = (String) mappIntelligenceConfig.get("trackDomain");

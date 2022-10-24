@@ -115,6 +115,7 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
      * @return boolean
      */
     private boolean addToRequestQueue(Map<String, String> requestData) {
+        requestData.put(MappIntelligenceParameter.PIXEL_FEATURES, this.statistics.toString());
         requestData.put(MappIntelligenceParameter.VERSION, MappIntelligence.VERSION);
         requestData.put(MappIntelligenceParameter.TRACKING_PLATFORM, TRACKING_PLATFORM);
 
@@ -122,6 +123,11 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
         return true;
     }
 
+    /**
+     * @param data Tracking request data
+     *
+     * @return Map<String, String>
+     */
     private Map<String, String> getRequestData(Map<String, Object> data) {
         Map<String, String> requestData = new HashMap<>();
         Object value;

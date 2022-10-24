@@ -11,7 +11,7 @@ GROUP_NAME=webtrekk
 EXLUDE_SHOP_EXAMPLE="--projects=!com.mapp.intelligence.tracking:shop-example,!com.mapp.intelligence.tracking:mapp-intelligence-java-tracking"
 
 if [ "${TEST_VERSION}" != "latest" ]; then
-    TEST_VERSION="14"
+    TEST_VERSION="15"
 fi
 
 APT_GET="$(type -t apt-get)"
@@ -50,6 +50,36 @@ usermod -aG "${GROUP_NAME}" "${USER_NAME}" || true
 # goto /app directory
 cd /app || exit 1
 
+echo "write java version in 'java-version.txt'"
+INSTALLED_JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+if [ "${APT_GET}" = "file" ]; then
+    su -c "echo ${INSTALLED_JAVA_VERSION} > ./java-version.txt" -m "${USER_NAME}"
+else
+    sudo -su ${USER_NAME} echo "${INSTALLED_JAVA_VERSION}" > ./java-version.txt
+fi
+
+echo "ckeck for java security manager"
+SECURITY_MANAGER_COMMAND="-Dwebtrekk.security.manager.key=foo"
+SECURITY_MANAGER_VALUE="-Dwebtrekk.security.manager.value=bar"
+if [[ "$INSTALLED_JAVA_VERSION" > "16" ]]; then
+    SECURITY_MANAGER_COMMAND="-Dwebtrekk.security.manager.key=java.security.manager"
+    SECURITY_MANAGER_VALUE="-Dwebtrekk.security.manager.value=allow"
+fi
+export SECURITY_MANAGER="$SECURITY_MANAGER_COMMAND $SECURITY_MANAGER_VALUE"
+
+if [ "${BUILD_TYPE}" = "test" ]; then
+    echo "test java lib"
+
+    if [ "${APT_GET}" = "file" ]; then
+        echo "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report"
+        su -c "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report" -m "${USER_NAME}"
+    else
+        sudo -su ${USER_NAME} mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report
+    fi
+
+    exit $?
+fi
+
 echo "install maven dependency"
 if [ "${APT_GET}" = "file" ]; then
     su -c "mvn -T 1C ${EXLUDE_SHOP_EXAMPLE} install" -m "${USER_NAME}"
@@ -57,27 +87,16 @@ else
     sudo -su ${USER_NAME} mvn -T 1C "${EXLUDE_SHOP_EXAMPLE}" install
 fi
 
-if [ "${BUILD_TYPE}" = "test" ]; then
-    echo "test java lib"
-
-    if [ "${APT_GET}" = "file" ]; then
-        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report" -m "${USER_NAME}"
-    else
-        sudo -su ${USER_NAME} mvn "${EXLUDE_SHOP_EXAMPLE}" clean test jacoco:report
-    fi
-
-    exit 0
-fi
-
 if [ "${BUILD_TYPE}" = "release" ]; then
     echo "release java lib"
 
+    cd tracking  || exit 1
     if [ "${APT_GET}" = "file" ]; then
-        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} release:clean" -m "${USER_NAME}"
-        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} --batch-mode release:prepare-with-pom -Dresume=false" -m "${USER_NAME}"
-#        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} release:perform" -m "${USER_NAME}"
-#        su -c "git push --tags" -m "${USER_NAME}"
-#        su -c "git push origin master" -m "${USER_NAME}"
+        su -c "mvn release:clean" -m "${USER_NAME}"
+        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
+        su -c "mvn release:perform" -m "${USER_NAME}"
+        su -c "git push --tags" -m "${USER_NAME}"
+        su -c "git push origin master" -m "${USER_NAME}"
     else
         sudo -su ${USER_NAME} mvn release:clean
         sudo -su ${USER_NAME} mvn --batch-mode release:prepare -Dresume=false
@@ -86,37 +105,22 @@ if [ "${BUILD_TYPE}" = "release" ]; then
         sudo -su ${USER_NAME} git push origin master
     fi
 
-#    cd tracking  || exit 1
-#    if [ "${APT_GET}" = "file" ]; then
-#        su -c "mvn release:clean" -m "${USER_NAME}"
-#        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
-#        su -c "mvn release:perform" -m "${USER_NAME}"
-#        su -c "git push --tags" -m "${USER_NAME}"
-#        su -c "git push origin master" -m "${USER_NAME}"
-#    else
-#        sudo -su ${USER_NAME} mvn release:clean
-#        sudo -su ${USER_NAME} mvn --batch-mode release:prepare -Dresume=false
-#        sudo -su ${USER_NAME} mvn release:perform
-#        sudo -su ${USER_NAME} git push --tags
-#        sudo -su ${USER_NAME} git push origin master
-#    fi
-#
-#    cd ../cronjob  || exit 1
-#    if [ "${APT_GET}" = "file" ]; then
-#        su -c "mvn release:clean" -m "${USER_NAME}"
-#        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
-#        su -c "mvn release:perform" -m "${USER_NAME}"
-#        su -c "git push --tags" -m "${USER_NAME}"
-#        su -c "git push origin master" -m "${USER_NAME}"
-#    else
-#        sudo -su ${USER_NAME} mvn release:clean
-#        sudo -su ${USER_NAME} mvn --batch-mode release -Dresume=false
-#        sudo -su ${USER_NAME} mvn release:perform
-#        sudo -su ${USER_NAME} git push --tags
-#        sudo -su ${USER_NAME} git push origin master
-#    fi
+    cd ../cronjob  || exit 1
+    if [ "${APT_GET}" = "file" ]; then
+        su -c "mvn release:clean" -m "${USER_NAME}"
+        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
+        su -c "mvn release:perform" -m "${USER_NAME}"
+        su -c "git push --tags" -m "${USER_NAME}"
+        su -c "git push origin master" -m "${USER_NAME}"
+    else
+        sudo -su ${USER_NAME} mvn release:clean
+        sudo -su ${USER_NAME} mvn --batch-mode release -Dresume=false
+        sudo -su ${USER_NAME} mvn release:perform
+        sudo -su ${USER_NAME} git push --tags
+        sudo -su ${USER_NAME} git push origin master
+    fi
 
-    exit 0
+    exit $?
 fi
 
 echo "test, build and deploy java lib"
@@ -129,3 +133,5 @@ else
     sudo -su ${USER_NAME} cp ./tracking/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
     sudo -su ${USER_NAME} cp ./cronjob/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
 fi
+
+exit 0

@@ -40,6 +40,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertNull(config.get("requestURL"));
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
+        assertEquals(34, config.get("statistics"));
     }
 
     @Test
@@ -82,6 +83,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertNull(config.get("requestURL"));
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
+        assertEquals(34, config.get("statistics"));
     }
 
     @Test
@@ -110,6 +112,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertNull(config.get("requestURL"));
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
+        assertEquals(34, config.get("statistics"));
     }
 
     @Test
@@ -138,6 +141,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertNull(config.get("requestURL"));
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
+        assertEquals(34, config.get("statistics"));
     }
 
     @Test
@@ -166,6 +170,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertNull(config.get("requestURL"));
         assertTrue(((String) config.get("filePath")).endsWith("/"));
         assertEquals("MappIntelligenceRequests", config.get("filePrefix"));
+        assertEquals(131, config.get("statistics"));
     }
 
     @Test
@@ -203,6 +208,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(2, ((List<String>) config.get("useParamsForDefaultPageName")).size());
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
+        assertEquals(33, config.get("statistics"));
     }
 
     @Test
@@ -231,6 +237,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertNull(config.get("requestURL"));
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
+        assertEquals(34, config.get("statistics"));
     }
 
     @Test
@@ -259,6 +266,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertNull(config.get("requestURL"));
         assertTrue(((String) config.get("filePath")).endsWith("/"));
         assertEquals("MappIntelligenceRequests", config.get("filePrefix"));
+        assertEquals(131, config.get("statistics"));
     }
 
     @Test
@@ -296,6 +304,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(2, ((List<String>) config.get("useParamsForDefaultPageName")).size());
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
+        assertEquals(33, config.get("statistics"));
     }
 
     @Test
@@ -334,6 +343,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("null", config.get("filePrefix"));
         assertEquals(MappIntelligenceConsumerType.FILE, config.get("consumerType"));
         assertEquals(1, config.get("maxBatchSize"));
+        assertEquals(134, config.get("statistics"));
     }
 
     @Test

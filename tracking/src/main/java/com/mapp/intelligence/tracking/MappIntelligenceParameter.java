@@ -26,6 +26,7 @@ public class MappIntelligenceParameter {
     public static final String PRODUCT_COST = "co";
     public static final String PRODUCT_QUANTITY = "qn";
     public static final String PRODUCT_STATUS = "st";
+    public static final String PIXEL_FEATURES = "pf";
 
     // predefined custom parameter and category
     // predefined urm category

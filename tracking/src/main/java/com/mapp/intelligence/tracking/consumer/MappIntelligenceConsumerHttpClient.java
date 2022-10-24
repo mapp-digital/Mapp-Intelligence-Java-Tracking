@@ -77,16 +77,7 @@ public class MappIntelligenceConsumerHttpClient extends AbstractMappIntelligence
             this.logger.log(MappIntelligenceMessages.BATCH_REQUEST_STATUS, httpStatus);
 
             if (httpStatus > HttpURLConnection.HTTP_BAD_REQUEST) {
-                InputStreamReader inputStreamReader = new InputStreamReader(con.getErrorStream(), StandardCharsets.UTF_8);
-                try (BufferedReader br = new BufferedReader(inputStreamReader)) {
-                    StringBuilder response = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-
-                    this.logger.log(MappIntelligenceMessages.BATCH_RESPONSE_TEXT, httpStatus, response.toString());
-                }
+                this.logger.log(MappIntelligenceMessages.BATCH_RESPONSE_TEXT, httpStatus, "HTTP Status " + httpStatus);
 
                 con.disconnect();
                 return false;

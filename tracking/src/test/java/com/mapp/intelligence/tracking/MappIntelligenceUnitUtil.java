@@ -4,6 +4,7 @@ import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerFile;
 import com.mapp.intelligence.tracking.core.MappIntelligenceHybrid;
 import com.mapp.intelligence.tracking.core.MappIntelligenceTracking;
 import com.mapp.intelligence.tracking.queue.MappIntelligenceQueue;
+import com.mapp.intelligence.tracking.util.URLString;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -106,6 +107,17 @@ public class MappIntelligenceUnitUtil {
         }
 
         return requests;
+    }
+
+    public static boolean checkStatistics(String request, String pixelFeatures) {
+        if (request.contains("pf=" + pixelFeatures)
+            && request.contains("cs801=" + URLString.encode(MappIntelligence.VERSION))
+            && request.contains("cs802=Java")) {
+            return true;
+        }
+
+        System.out.println(request + " | pf=" + pixelFeatures);
+        return false;
     }
 
     /**

@@ -195,7 +195,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
      * Rename temporary file (.tmp to .log).
      */
     private void renameAndCreateNewTempFile() {
-        int i = this.file.getName().lastIndexOf(".");
+        int i = this.file.getName().lastIndexOf('.');
         String name = this.file.getName().substring(0, i);
 
         File renamedFile = new File(String.format("%s/%s%s", this.filePath, name, LOG_FILE_EXTENSION));

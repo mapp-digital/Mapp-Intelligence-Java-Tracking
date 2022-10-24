@@ -215,6 +215,39 @@ public class MappIntelligenceConfig {
     }
 
     /**
+     * @return int
+     */
+    private int getStatistics() {
+        int statistics = 0;
+
+        if (this.useParamsForDefaultPageName.size() > 0) {
+            statistics += 1;
+        }
+
+        if (this.forceSSL) {
+            statistics += 2;
+        }
+
+        if (this.logger != null) {
+            statistics += 4;
+        }
+
+        if (this.consumerType.equals(MappIntelligenceConsumerType.HTTP_CLIENT)) {
+            statistics += 32;
+        }
+
+        if (this.consumerType.equals(MappIntelligenceConsumerType.FILE)) {
+            statistics += 128;
+        }
+
+        if (this.consumerType.equals(MappIntelligenceConsumerType.CUSTOM)) {
+            statistics += 256;
+        }
+
+        return statistics;
+    }
+
+    /**
      * @param value Origin value
      * @param def Default value
      *
@@ -576,6 +609,8 @@ public class MappIntelligenceConfig {
             this.maxBatchSize = 1;
         }
 
+        int statistics = this.getStatistics();
+
         Map<String, Object> config = new HashMap<>();
         config.put("trackId", this.trackId);
         config.put("trackDomain", this.trackDomain);
@@ -600,6 +635,7 @@ public class MappIntelligenceConfig {
         config.put("referrerURL", this.referrerURL);
         config.put("requestURL", this.requestURL);
         config.put("cookie", this.cookie);
+        config.put("statistics", statistics);
 
         return config;
     }
