@@ -9,7 +9,7 @@
 
     <artifactId>tracking</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.13</version>
+    <version>0.0.14-SNAPSHOT</version>
     <name>tracking</name>
 
     <build>
