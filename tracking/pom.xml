@@ -9,7 +9,7 @@
 
     <artifactId>tracking</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.15</version>
+    <version>0.0.16-SNAPSHOT</version>
     <name>tracking</name>
 
     <build>
@@ -112,6 +112,6 @@
         <connection>scm:git:git://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
         <developerConnection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
         <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
-        <tag>tracking-0.0.15</tag>
+        <tag>v0.0.13</tag>
   </scm>
 </project>
