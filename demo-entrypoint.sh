@@ -33,8 +33,8 @@ cd ./shop-example || exit 1
 rm -rf /usr/local/tomcat/webapps/ROOT
 
 # copy cronjob file
-cp ./../dist/mapp-intelligence-java-cronjob-0.0.1.jar /usr/local/tomcat/temp/
-cp ./../dist/mapp-intelligence-java-tracking-0.0.1.jar /usr/local/tomcat/temp/
+cp ./../dist/mapp-intelligence-java-cronjob.jar /usr/local/tomcat/temp/
+cp ./../dist/mapp-intelligence-java-tracking.jar /usr/local/tomcat/temp/
 
 # copy shop example to tomcat root
 cp ./target/shop-example-0.0.1.war /usr/local/tomcat/webapps/

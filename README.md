@@ -53,5 +53,5 @@ $ make test-latest
 Start a demo shop example on https://localhost:8443.
 
 ```bash
-$ make test
+$ make demo
 ```

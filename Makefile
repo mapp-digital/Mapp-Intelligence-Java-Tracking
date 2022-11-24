@@ -21,10 +21,10 @@ demo:
 	bash -c "docker-compose build && docker-compose up shop"
 
 demo-cron-fail:
-	docker exec mapp-intelligence-java-tracking_shop_1 /bin/bash -c "java -jar /usr/local/tomcat/temp/mapp-intelligence-java-cronjob-0.0.1.jar -i 111111111111111 -d q3.webtrekk.net -f /usr/local/tomcat/temp/ --debug"
+	docker exec mapp-intelligence-java-tracking_shop_1 /bin/bash -c "java -jar /usr/local/tomcat/temp/mapp-intelligence-java-cronjob.jar -i 111111111111111 -d q3.webtrekk.net -f /usr/local/tomcat/temp/ --debug"
 
 demo-cron-success:
-	docker exec mapp-intelligence-java-tracking_shop_1 /bin/bash -c "java -jar /usr/local/tomcat/temp/mapp-intelligence-java-cronjob-0.0.1.jar -i 123451234512345 -d q3.webtrekk.net -f /usr/local/tomcat/temp/ --debug"
+	docker exec mapp-intelligence-java-tracking_shop_1 /bin/bash -c "java -jar /usr/local/tomcat/temp/mapp-intelligence-java-cronjob.jar -i 123451234512345 -d q3.webtrekk.net -f /usr/local/tomcat/temp/ --debug"
 
 demo-log:
 	docker exec -it -w /usr/local/tomcat/temp/ mapp-intelligence-java-tracking_shop_1 bash
