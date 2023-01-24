@@ -20,6 +20,7 @@ public class MappIntelligenceMessages {
     public static final String REQUIRED_TRACK_ID_AND_DOMAIN_FOR_COOKIE = REQUIRED_TRACK_ID_AND_DOMAIN + " get user cookie";
     public static final String REQUIRED_TRACK_ID_AND_DOMAIN_FOR_TRACKING = REQUIRED_TRACK_ID_AND_DOMAIN + " track data";
     public static final String TRACKING_IS_DEACTIVATED = "Mapp Intelligence tracking is deactivated";
+    public static final String TRACKING_IS_DEACTIVATED_BY_IN_AND_EXCLUDE = "Mapp Intelligence tracking is deactivated by include / exclude";
     public static final String SENT_BATCH_REQUESTS = "Sent batch requests, current queue size is %s req.";
     public static final String BATCH_REQUEST_FAILED = "Batch request failed!";
     public static final String CURRENT_QUEUE_STATUS = "Batch of %s req. sent, current queue size is %s req.";

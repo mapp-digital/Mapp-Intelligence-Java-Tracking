@@ -2,6 +2,7 @@ package com.mapp.intelligence.tracking.config;
 
 import com.mapp.intelligence.tracking.MappIntelligenceLogger;
 import com.mapp.intelligence.tracking.MappIntelligenceConsumer;
+import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerType;
 import com.mapp.intelligence.tracking.util.URLString;
 
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * It is possible to create a configuration object directly in your java code, or create a configuration file and
@@ -78,6 +81,10 @@ public class MappIntelligenceConfig {
      * Deactivate the tracking functionality.
      */
     private boolean deactivate;
+    /**
+     * Deactivate the tracking functionality.
+     */
+    private boolean deactivateByInAndExclude;
     /**
      * Activates the debug mode.
      */
@@ -154,6 +161,22 @@ public class MappIntelligenceConfig {
      * Map with cookies.
      */
     private Map<String, String> cookie = new HashMap<>();
+    /**
+     * If the string is contained in the request URL, the request is measured.
+     */
+    private List<String> containsInclude = new ArrayList<>();
+    /**
+     * If the string is contained in the request URL, the request isn't measured.
+     */
+    private List<String> containsExclude = new ArrayList<>();
+    /**
+     * If the regular expression matches the request URL, the request is measured.
+     */
+    private List<String> matchesInclude = new ArrayList<>();
+    /**
+     * If the regular expression matches the request URL, the request isn't measured.
+     */
+    private List<String> matchesExclude = new ArrayList<>();
 
     /**
      * Default constructor.
@@ -186,7 +209,11 @@ public class MappIntelligenceConfig {
             .setMaxFileLines(prop.getIntegerProperty(MappIntelligenceProperties.MAX_FILE_LINES, this.maxFileLines))
             .setMaxFileDuration(prop.getIntegerProperty(MappIntelligenceProperties.MAX_FILE_DURATION, this.maxFileDuration))
             .setMaxFileSize(prop.getIntegerProperty(MappIntelligenceProperties.MAX_FILE_SIZE, this.maxFileSize))
-            .setForceSSL(prop.getBooleanProperty(MappIntelligenceProperties.FORCE_SSL, true));
+            .setForceSSL(prop.getBooleanProperty(MappIntelligenceProperties.FORCE_SSL, true))
+            .setContainsInclude(prop.getListProperty(MappIntelligenceProperties.CONTAINS_INCLUDE, this.containsInclude, ";"))
+            .setContainsExclude(prop.getListProperty(MappIntelligenceProperties.CONTAINS_EXCLUDE, this.containsExclude, ";"))
+            .setMatchesInclude(prop.getListProperty(MappIntelligenceProperties.MATCHES_INCLUDE, this.matchesInclude, ";"))
+            .setMatchesExclude(prop.getListProperty(MappIntelligenceProperties.MATCHES_EXCLUDE, this.matchesExclude, ";"));
     }
 
     /**
@@ -196,6 +223,75 @@ public class MappIntelligenceConfig {
     public MappIntelligenceConfig(String tId, String tDomain) {
         this.trackId = (tId != null) ? tId : this.trackId;
         this.trackDomain = (tDomain != null) ? tDomain : this.trackDomain;
+    }
+
+    /**
+     * @param list List of strings, if is contained in the request URL, the request is/isn't measured
+     *
+     * @return boolean
+     */
+    private boolean checkContains(List<String> list) {
+        for (String s : list) {
+            if (this.requestURL.toString().contains(s)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param list List of regular expressions, if it matches the request URL, the request is/isn't measured
+     *
+     * @return boolean
+     */
+    private boolean checkMatches(List<String> list) {
+        for (String s : list) {
+            try {
+                if (Pattern.compile(s).matcher(this.requestURL.toString()).find()) {
+                    return true;
+                }
+            }
+            catch (PatternSyntaxException e) {
+                this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return boolean
+     */
+    private boolean isDeactivateByInAndExclude() {
+        if (this.requestURL == null) {
+            return false;
+        }
+
+        boolean isContainsIncludeEmpty = this.containsInclude.isEmpty();
+        boolean isMatchesIncludeEmpty = this.matchesInclude.isEmpty();
+        boolean isContainsExcludeEmpty = this.containsExclude.isEmpty();
+        boolean isMatchesExcludeEmpty = this.matchesExclude.isEmpty();
+
+        boolean isIncluded = isContainsIncludeEmpty && isMatchesIncludeEmpty;
+
+        if (!isContainsIncludeEmpty) {
+            isIncluded = this.checkContains(this.containsInclude);
+        }
+
+        if (!isIncluded && !isMatchesIncludeEmpty) {
+            isIncluded = this.checkMatches(this.matchesInclude);
+        }
+
+        if (isIncluded && !isContainsExcludeEmpty) {
+            isIncluded = !this.checkContains(this.containsExclude);
+        }
+
+        if (isIncluded && !isMatchesExcludeEmpty) {
+            isIncluded = !this.checkMatches(this.matchesExclude);
+        }
+
+        return !isIncluded;
     }
 
     /**
@@ -590,6 +686,94 @@ public class MappIntelligenceConfig {
     }
 
     /**
+     * @param ci Specify the strings that must be contained in the request URL to measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setContainsInclude(List<String> ci) {
+        this.containsInclude = this.getOrDefault(ci, this.containsInclude);
+        return this;
+    }
+
+    /**
+     * @param ci Specify the string that must be contained in the request URL to measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig addContainsInclude(String ci) {
+        if (ci != null) {
+            this.containsInclude.add(ci);
+        }
+        return this;
+    }
+
+    /**
+     * @param ce Specify the strings that must be contained in the request URL to not measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setContainsExclude(List<String> ce) {
+        this.containsExclude = this.getOrDefault(ce, this.containsExclude);
+        return this;
+    }
+
+    /**
+     * @param ce Specify the string that must be contained in the request URL to not measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig addContainsExclude(String ce) {
+        if (ce != null) {
+            this.containsExclude.add(ce);
+        }
+        return this;
+    }
+
+    /**
+     * @param mi Specify the regular expressions that must be match the request URL to measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setMatchesInclude(List<String> mi) {
+        this.matchesInclude = this.getOrDefault(mi, this.matchesInclude);
+        return this;
+    }
+
+    /**
+     * @param mi Specify the regular expression that must be match the request URL to measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig addMatchesInclude(String mi) {
+        if (mi != null) {
+            this.matchesInclude.add(mi);
+        }
+        return this;
+    }
+
+    /**
+     * @param me Specify the regular expressions that must be match the request URL to not measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setMatchesExclude(List<String> me) {
+        this.matchesExclude = this.getOrDefault(me, this.matchesExclude);
+        return this;
+    }
+
+    /**
+     * @param me Specify the regular expression that must be match the request URL to not measure the request
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig addMatchesExclude(String me) {
+        if (me != null) {
+            this.matchesExclude.add(me);
+        }
+        return this;
+    }
+
+    /**
      * @return Map(String, Object)
      */
     public Map<String, Object> build() {
@@ -609,6 +793,10 @@ public class MappIntelligenceConfig {
             this.maxBatchSize = 1;
         }
 
+        if (!this.containsInclude.isEmpty() || !this.containsExclude.isEmpty() || !this.matchesInclude.isEmpty() || !this.matchesExclude.isEmpty()) {
+            this.deactivateByInAndExclude = this.isDeactivateByInAndExclude();
+        }
+
         int statistics = this.getStatistics();
 
         Map<String, Object> config = new HashMap<>();
@@ -616,6 +804,7 @@ public class MappIntelligenceConfig {
         config.put("trackDomain", this.trackDomain);
         config.put("domain", this.domain);
         config.put("deactivate", this.deactivate);
+        config.put("deactivateByInAndExclude", this.deactivateByInAndExclude);
         config.put("logger", this.logger);
         config.put("consumer", this.consumer);
         config.put("consumerType", this.consumerType);
@@ -635,6 +824,10 @@ public class MappIntelligenceConfig {
         config.put("referrerURL", this.referrerURL);
         config.put("requestURL", this.requestURL);
         config.put("cookie", this.cookie);
+        config.put("containsInclude", this.containsInclude);
+        config.put("containsExclude", this.containsExclude);
+        config.put("matchesInclude", this.matchesInclude);
+        config.put("matchesExclude", this.matchesExclude);
         config.put("statistics", statistics);
 
         return config;

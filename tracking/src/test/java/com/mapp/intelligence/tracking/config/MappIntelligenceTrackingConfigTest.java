@@ -41,6 +41,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
         assertEquals(34, config.get("statistics"));
+        assertEquals(0, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(0, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -60,6 +64,10 @@ public class MappIntelligenceTrackingConfigTest {
             .setConsumer(null)
             .setFilePath(null)
             .setFilePrefix(null)
+            .setContainsInclude(null).addContainsInclude(null)
+            .setContainsExclude(null).addContainsExclude(null)
+            .setMatchesInclude(null).addMatchesInclude(null)
+            .setMatchesExclude(null).addMatchesExclude(null)
             .setUseParamsForDefaultPageName(null).addUseParamsForDefaultPageName(null);
         Map<String, Object> config = mappIntelligenceConfig.build();
 
@@ -84,6 +92,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
         assertEquals(34, config.get("statistics"));
+        assertEquals(0, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(0, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -113,6 +125,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
         assertEquals(34, config.get("statistics"));
+        assertEquals(0, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(0, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -142,6 +158,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
         assertEquals(34, config.get("statistics"));
+        assertEquals(0, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(0, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -171,6 +191,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).endsWith("/"));
         assertEquals("MappIntelligenceRequests", config.get("filePrefix"));
         assertEquals(131, config.get("statistics"));
+        assertEquals(2, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(1, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(2, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(1, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -209,6 +233,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
         assertEquals(33, config.get("statistics"));
+        assertEquals(0, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(0, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -238,6 +266,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
         assertEquals(34, config.get("statistics"));
+        assertEquals(0, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(0, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -267,6 +299,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).endsWith("/"));
         assertEquals("MappIntelligenceRequests", config.get("filePrefix"));
         assertEquals(131, config.get("statistics"));
+        assertEquals(2, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(1, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(2, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(1, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -305,6 +341,10 @@ public class MappIntelligenceTrackingConfigTest {
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
         assertEquals(33, config.get("statistics"));
+        assertEquals(0, ((List<String>) config.get("containsInclude")).size());
+        assertEquals(0, ((List<String>) config.get("containsExclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
+        assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
     }
 
     @Test
@@ -499,5 +539,325 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("bar", ((Map<String, String>) config.get("cookie")).get("foo"));
         assertEquals("123", ((Map<String, String>) config.get("cookie")).get("test"));
         assertEquals("cba", ((Map<String, String>) config.get("cookie")).get("abc"));
+    }
+
+    @Test
+    public void testConfigWithContainsInclude() {
+        MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig();
+        mappIntelligenceConfig.setContainsInclude(new ArrayList<>())
+            .addContainsInclude("foo.bar.com")
+            .addContainsInclude("www.mappIntelligence.com")
+            .addContainsInclude("sub.domain.tld");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals("foo.bar.com", ((List<String>) config.get("containsInclude")).get(0));
+        assertEquals("www.mappIntelligence.com", ((List<String>) config.get("containsInclude")).get(1));
+        assertEquals("sub.domain.tld", ((List<String>) config.get("containsInclude")).get(2));
+    }
+
+    @Test
+    public void testConfigWithContainsExclude() {
+        MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig();
+        mappIntelligenceConfig.setContainsExclude(new ArrayList<>())
+            .addContainsExclude("foo.bar.com")
+            .addContainsExclude("www.mappIntelligence.com")
+            .addContainsExclude("sub.domain.tld");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals("foo.bar.com", ((List<String>) config.get("containsExclude")).get(0));
+        assertEquals("www.mappIntelligence.com", ((List<String>) config.get("containsExclude")).get(1));
+        assertEquals("sub.domain.tld", ((List<String>) config.get("containsExclude")).get(2));
+    }
+
+    @Test
+    public void testConfigWithMatchesInclude() {
+        MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig();
+        mappIntelligenceConfig.setMatchesInclude(new ArrayList<>())
+            .addMatchesInclude("foo\\.bar\\.com")
+            .addMatchesInclude("www\\.mappIntelligence\\.com")
+            .addMatchesInclude("sub\\.domain\\.tld");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals("foo\\.bar\\.com", ((List<String>) config.get("matchesInclude")).get(0));
+        assertEquals("www\\.mappIntelligence\\.com", ((List<String>) config.get("matchesInclude")).get(1));
+        assertEquals("sub\\.domain\\.tld", ((List<String>) config.get("matchesInclude")).get(2));
+    }
+
+    @Test
+    public void testConfigWithMatchesExclude() {
+        MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig();
+        mappIntelligenceConfig.setMatchesExclude(new ArrayList<>())
+            .addMatchesExclude("foo\\.bar\\.com")
+            .addMatchesExclude("www\\.mappIntelligence\\.com")
+            .addMatchesExclude("sub\\.domain\\.tld");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals("foo\\.bar\\.com", ((List<String>) config.get("matchesExclude")).get(0));
+        assertEquals("www\\.mappIntelligence\\.com", ((List<String>) config.get("matchesExclude")).get(1));
+        assertEquals("sub\\.domain\\.tld", ((List<String>) config.get("matchesExclude")).get(2));
+    }
+
+    @Test
+    public void testRequestWithContainsInclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsInclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain1.tld")
+            .addContainsInclude("sub.domain2.tld")
+            .addContainsInclude("sub.domain3.tld")
+            .addContainsInclude("sub.domain.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsInclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain1.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesInclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesInclude("sub\\.domain\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesInclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesInclude("sub\\.domain1\\.tld")
+            .addMatchesInclude("sub\\.domain2\\.tld")
+            .addMatchesInclude("sub\\.domain3\\.tld")
+            .addMatchesInclude("sub\\.domain\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesInclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesInclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsAndMatchesInclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain.tld")
+            .addMatchesInclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsAndMatchesInclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain1.tld")
+            .addMatchesInclude("sub\\.domain\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsAndMatchesInclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain1.tld")
+            .addMatchesInclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsExclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsExclude("sub.domain.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsExclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsExclude("sub.domain1.tld")
+            .addContainsExclude("sub.domain2.tld")
+            .addContainsExclude("sub.domain3.tld")
+            .addContainsExclude("sub.domain.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsExclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsExclude("sub.domain1.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesExclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesExclude("sub\\.domain\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesExclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesExclude("sub\\.domain1\\.tld")
+            .addMatchesExclude("sub\\.domain2\\.tld")
+            .addMatchesExclude("sub\\.domain3\\.tld")
+            .addMatchesExclude("sub\\.domain\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesExclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesExclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsAndMatchesExclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsExclude("sub.domain.tld")
+            .addMatchesExclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsAndMatchesExclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsExclude("sub.domain1.tld")
+            .addMatchesExclude("sub\\.domain\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsAndMatchesExclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsExclude("sub.domain1.tld")
+            .addMatchesExclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsIncludeAndExclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain.tld")
+            .addContainsExclude(".html")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsIncludeAndExclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain.tld")
+            .addContainsExclude("sub.domain1.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithContainsIncludeAndExclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addContainsInclude("sub.domain1.tld")
+            .addContainsExclude("sub.domain1.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesIncludeAndExclude1() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesInclude("sub\\.domain\\.tld")
+            .addMatchesExclude("\\.html")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesIncludeAndExclude2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesInclude("sub\\.domain\\.tld")
+            .addMatchesExclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(false, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testRequestWithMatchesIncludeAndExclude3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .addMatchesInclude("sub\\.domain1\\.tld")
+            .addMatchesExclude("sub\\.domain1\\.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("deactivateByInAndExclude"));
     }
 }

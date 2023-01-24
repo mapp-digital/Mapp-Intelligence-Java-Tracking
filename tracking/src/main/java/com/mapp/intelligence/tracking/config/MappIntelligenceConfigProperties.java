@@ -116,11 +116,22 @@ class MappIntelligenceConfigProperties {
      * @return MappIntelligenceConsumer
      */
     public List<String> getListProperty(String propertyName, List<String> defaultValue) {
+        return getListProperty(propertyName, defaultValue, ",");
+    }
+
+    /**
+     * @param propertyName Name of the property
+     * @param defaultValue Default value for the property
+     * @param splitTerm Value for string splitting
+     *
+     * @return MappIntelligenceConsumer
+     */
+    public List<String> getListProperty(String propertyName, List<String> defaultValue, String splitTerm) {
         List<String> listValue = defaultValue;
         String propertyValue = this.getProperty(propertyName);
 
         if (!propertyValue.isEmpty()) {
-            listValue = Arrays.asList(propertyValue.split(","));
+            listValue = Arrays.asList(propertyValue.split(splitTerm));
         }
 
         return listValue;

@@ -106,6 +106,11 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
             return false;
         }
 
+        if (this.deactivateByInAndExclude) {
+            this.logger.log(MappIntelligenceMessages.TRACKING_IS_DEACTIVATED_BY_IN_AND_EXCLUDE);
+            return false;
+        }
+
         return true;
     }
 

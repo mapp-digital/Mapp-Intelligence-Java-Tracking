@@ -26,6 +26,10 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
      */
     protected final boolean deactivate;
     /**
+     * Deactivate the tracking functionality.
+     */
+    protected final boolean deactivateByInAndExclude;
+    /**
      * Your Mapp Intelligence track ID provided by Mapp.
      */
     protected final String trackId;
@@ -58,6 +62,7 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
 
         this.statistics = (Integer) mappIntelligenceConfig.get("statistics");
         this.deactivate = (boolean) mappIntelligenceConfig.get("deactivate");
+        this.deactivateByInAndExclude = (boolean) mappIntelligenceConfig.get("deactivateByInAndExclude");
         this.trackId = (String) mappIntelligenceConfig.get("trackId");
         this.trackDomain = (String) mappIntelligenceConfig.get("trackDomain");
     }

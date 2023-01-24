@@ -7,6 +7,10 @@
     <entry key="tracking.deactivate">false</entry>
     <entry key="tracking.domain"/>
     <entry key="tracking.useParamsForDefaultPageName"/>
+    <entry key="tracking.containsInclude"/>
+    <entry key="tracking.containsExclude"/>
+    <entry key="tracking.matchesInclude"/>
+    <entry key="tracking.matchesExclude"/>
 
     <!-- [consumer] -->
     <entry key="consumer.consumerType">HTTP_CLIENT</entry>

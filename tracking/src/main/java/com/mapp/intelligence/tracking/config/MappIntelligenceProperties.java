@@ -17,6 +17,10 @@ class MappIntelligenceProperties {
     public static final String DEACTIVATE = "tracking.deactivate";
     public static final String DOMAIN = "tracking.domain";
     public static final String USE_PARAMS_FOR_DEFAULT_PAGE_NAME = "tracking.useParamsForDefaultPageName";
+    public static final String CONTAINS_INCLUDE = "tracking.containsInclude";
+    public static final String CONTAINS_EXCLUDE = "tracking.containsExclude";
+    public static final String MATCHES_INCLUDE = "tracking.matchesInclude";
+    public static final String MATCHES_EXCLUDE = "tracking.matchesExclude";
     public static final String CONSUMER_TYPE = "consumer.consumerType";
     public static final String FILE_PATH = "consumer.filePath";
     public static final String FILE_PREFIX = "consumer.filePrefix";

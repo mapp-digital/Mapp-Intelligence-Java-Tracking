@@ -7,6 +7,10 @@
     <entry key="tracking.deactivate">false</entry>
     <entry key="tracking.domain">sub.domain.tld,foo.bar</entry>
     <entry key="tracking.useParamsForDefaultPageName">aa,bb,cc</entry>
+    <entry key="tracking.containsInclude">foo;bar</entry>
+    <entry key="tracking.containsExclude">test</entry>
+    <entry key="tracking.matchesInclude">*foo.*;.*bar.*</entry>
+    <entry key="tracking.matchesExclude">.*test.*</entry>
 
     <!-- [consumer] -->
     <entry key="consumer.consumerType">FILE</entry>
