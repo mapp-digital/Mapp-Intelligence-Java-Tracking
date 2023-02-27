@@ -21,26 +21,6 @@
         <module>shop-example</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>tracking</artifactId>
-                <version>0.0.21-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>shop-example</artifactId>
-                <version>0.0.19-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>cronjob</artifactId>
-                <version>0.0.21-SNAPSHOT</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <properties>
         <compileSource>8</compileSource>
         <testCompileSource>${java.specification.version}</testCompileSource>
@@ -54,6 +34,8 @@
         <argLine>-Xms1024m</argLine>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
     <build>
