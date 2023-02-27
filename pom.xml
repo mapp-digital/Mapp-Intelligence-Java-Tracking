@@ -5,7 +5,7 @@
     <groupId>com.mapp.intelligence.tracking</groupId>
     <artifactId>mapp-intelligence-java-tracking</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.20</version>
+    <version>0.0.21-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -26,7 +26,7 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>tracking</artifactId>
-                <version>0.0.20</version>
+                <version>0.0.21-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
@@ -36,7 +36,7 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>cronjob</artifactId>
-                <version>0.0.20</version>
+                <version>0.0.21-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -263,6 +263,6 @@
         <connection>scm:git:git://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
         <developerConnection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
         <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
-        <tag>v0.0.20</tag>
+        <tag>v0.0.17</tag>
     </scm>
 </project>
