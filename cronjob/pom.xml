@@ -105,5 +105,5 @@
         <developerConnection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
         <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
         <tag>cronjob-0.0.17</tag>
-  </scm>
+    </scm>
 </project>
