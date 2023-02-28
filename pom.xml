@@ -5,7 +5,7 @@
     <groupId>com.mapp.intelligence.tracking</groupId>
     <artifactId>mapp-intelligence-java-tracking</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.21-SNAPSHOT</version>
+    <version>0.0.21</version>
 
     <licenses>
         <license>
@@ -245,6 +245,6 @@
         <connection>scm:git:git://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
         <developerConnection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
         <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
-        <tag>v0.0.17</tag>
+        <tag>v0.0.21</tag>
     </scm>
 </project>
