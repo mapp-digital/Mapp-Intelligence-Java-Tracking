@@ -7,6 +7,19 @@
     <packaging>pom</packaging>
     <version>0.0.22-SNAPSHOT</version>
 
+    <name>mapp-intelligence-java-tracking</name>
+    <description>Server-side tracking is crucial for companies that must measure mission-critical information on their website, such as order information or other website goals. The Java library of Mapp Intelligence helps you to set up server-side tracking when using Mapp Intelligence as your analysis tool.</description>
+    <url>https://documentation.mapp.com/latest/en/java-library-7239408.html</url>
+
+    <developers>
+        <developer>
+            <name>Stephan Guenther</name>
+            <email>stephan.guenther@mapp.com</email>
+            <organization>Mapp Digital c/o Webtrekk GmbH</organization>
+            <organizationUrl>https://mapp.com</organizationUrl>
+        </developer>
+    </developers>
+
     <licenses>
         <license>
             <name>MIT License</name>
