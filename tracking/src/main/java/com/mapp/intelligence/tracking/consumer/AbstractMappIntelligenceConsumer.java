@@ -68,7 +68,8 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
         this.trackDomain = (String) config.getOrDefault("trackDomain", "");
         this.trackId = (String) config.getOrDefault("trackId", "");
 
-        this.logger = new MappIntelligenceDebugLogger((MappIntelligenceLogger) config.get("logger"));
+        int logLevel = (int) config.get("logLevel");
+        this.logger = new MappIntelligenceDebugLogger((MappIntelligenceLogger) config.get("logger"), logLevel);
     }
 
     /**
@@ -89,7 +90,7 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
     protected final String verifyPayload(List<String> batchContent) {
         int currentBatchSize = batchContent.size();
         if (currentBatchSize > MAX_BATCH_SIZE) {
-            this.logger.log(MappIntelligenceMessages.TO_LARGE_BATCH_SIZE, MAX_BATCH_SIZE, currentBatchSize);
+            this.logger.error(MappIntelligenceMessages.TO_LARGE_BATCH_SIZE, MAX_BATCH_SIZE, currentBatchSize);
             return "";
         }
 
@@ -97,7 +98,7 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
         if (payload.length() >= MAX_PAYLOAD_SIZE) {
             float length = payload.length();
             double currentPayloadSize = (double) Math.round(length / INTEGER_1024 / INTEGER_1024 * DOUBLE_100) / DOUBLE_100;
-            this.logger.log(MappIntelligenceMessages.TO_LARGE_PAYLOAD_SIZE, currentPayloadSize);
+            this.logger.error(MappIntelligenceMessages.TO_LARGE_PAYLOAD_SIZE, currentPayloadSize);
             return "";
         }
 

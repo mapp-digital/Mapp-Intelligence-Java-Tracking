@@ -16,6 +16,7 @@ class MappIntelligenceProperties {
     public static final String TRACK_DOMAIN = "tracking.trackDomain";
     public static final String DEACTIVATE = "tracking.deactivate";
     public static final String DOMAIN = "tracking.domain";
+    public static final String LOG_LEVEL = "tracking.logLevel";
     public static final String USE_PARAMS_FOR_DEFAULT_PAGE_NAME = "tracking.useParamsForDefaultPageName";
     public static final String CONTAINS_INCLUDE = "tracking.containsInclude";
     public static final String CONTAINS_EXCLUDE = "tracking.containsExclude";

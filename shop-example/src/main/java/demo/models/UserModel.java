@@ -11,6 +11,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 public class UserModel {
     private static final String JSON_USERS = Objects.requireNonNull(ProductModel.class.getClassLoader().getResource("users.json")).getFile();
     private JSONObject jsonUsers = null;

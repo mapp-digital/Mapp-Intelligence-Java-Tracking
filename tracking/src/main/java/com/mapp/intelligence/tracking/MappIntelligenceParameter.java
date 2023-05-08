@@ -9,6 +9,14 @@ public class MappIntelligenceParameter {
     public static final String USER_AGENT = "X-WT-UA";
     public static final String USER_IP = "X-WT-IP";
 
+    // user agent client hints
+    public static final String CLIENT_HINT_USER_AGENT = "X-WT-SEC-CH-UA";
+    public static final String CLIENT_HINT_USER_AGENT_FULL_VERSION_LIST = "X-WT-SEC-CH-UA-FULL-VERSION-LIST";
+    public static final String CLIENT_HINT_USER_AGENT_MODEL = "X-WT-SEC-CH-UA-MODEL";
+    public static final String CLIENT_HINT_USER_AGENT_MOBILE = "X-WT-SEC-CH-UA-MOBILE";
+    public static final String CLIENT_HINT_USER_AGENT_PLATFORM = "X-WT-SEC-CH-UA-PLATFORM";
+    public static final String CLIENT_HINT_USER_AGENT_PLATFORM_VERSION = "X-WT-SEC-CH-UA-PLATFORM_VERSION";
+
     // predefined parameter
     public static final String EVER_ID = "eid";
     public static final String CUSTOM_EVER_ID = "ceid";

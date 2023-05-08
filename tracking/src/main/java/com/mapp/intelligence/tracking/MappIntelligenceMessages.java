@@ -26,7 +26,7 @@ public class MappIntelligenceMessages {
     public static final String CURRENT_QUEUE_STATUS = "Batch of %s req. sent, current queue size is %s req.";
     public static final String QUEUE_IS_EMPTY = "MappIntelligenceQueue is empty";
     public static final String ADD_THE_FOLLOWING_REQUEST_TO_QUEUE = "Add the following request to queue (%s req.): %s";
-    public static final String MAPP_INTELLIGENCE = "[Mapp Intelligence]: ";
+    public static final String MAPP_INTELLIGENCE = "Mapp Intelligence";
 
     // Mapp Intelligence cronjob
     public static final String REQUIRED_TRACK_ID = "Argument \"-i\" or alternative \"--trackId\" are required";
@@ -38,6 +38,7 @@ public class MappIntelligenceMessages {
     public static final String OPTION_FILE_PREFIX = "Enter the prefix for your request logging files.";
     public static final String OPTION_HELP = "Display the help (this text) and exit.";
     public static final String OPTION_DEBUG = "Activates the debug mode. The debug mode sends messages to the command line.";
+    public static final String OPTION_LOG_LEVEL = "If you set this to a particular level, it will show all messages at that level and at higher levels of importance. You can set the following values: 'DEBUG', 'INFO', 'WARN', 'ERROR' and 'FATAL'.";
     public static final String OPTION_VERSION = "Display version and exit.";
     public static final String REQUEST_LOG_FILES_NOT_FOUND = "Request log files '%s' not found";
     public static final String RENAME_EXPIRED_TEMPORARY_FILE = "Rename expired temporary file into log file";

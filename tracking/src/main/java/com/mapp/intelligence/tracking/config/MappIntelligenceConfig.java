@@ -1,9 +1,11 @@
 package com.mapp.intelligence.tracking.config;
 
+import com.mapp.intelligence.tracking.MappIntelligenceLogLevel;
 import com.mapp.intelligence.tracking.MappIntelligenceLogger;
 import com.mapp.intelligence.tracking.MappIntelligenceConsumer;
 import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerType;
+import com.mapp.intelligence.tracking.util.MappIntelligenceDebugLogger;
 import com.mapp.intelligence.tracking.util.URLString;
 
 import java.net.MalformedURLException;
@@ -90,6 +92,10 @@ public class MappIntelligenceConfig {
      */
     private MappIntelligenceLogger logger;
     /**
+     * Defined the debug log level.
+     */
+    private int logLevel = MappIntelligenceLogLevel.ERROR;
+    /**
      * The consumer to use for data transfer to Intelligence.
      */
     private MappIntelligenceConsumer consumer;
@@ -146,6 +152,30 @@ public class MappIntelligenceConfig {
      */
     private String userAgent = "";
     /**
+     * HTTP header for Sec-CH-UA
+     */
+    private String clientHintUserAgent = "";
+    /**
+     * HTTP header for Sec-CH-UA-Full-Version-List
+     */
+    private String clientHintUserAgentFullVersionList = "";
+    /**
+     * HTTP header for Sec-CH-UA-Model
+     */
+    private String clientHintUserAgentModel = "";
+    /**
+     * HTTP header for Sec-CH-UA-Mobile
+     */
+    private String clientHintUserAgentMobile = "";
+    /**
+     * HTTP header for Sec-CH-UA-Platform
+     */
+    private String clientHintUserAgentPlatform = "";
+    /**
+     * HTTP header for Sec-CH-UA-Platform-Version
+     */
+    private String clientHintUserAgentPlatformVersion = "";
+    /**
      * Remote address (ip) from the client.
      */
     private String remoteAddress = "";
@@ -195,6 +225,7 @@ public class MappIntelligenceConfig {
             .setTrackDomain(prop.getStringProperty(MappIntelligenceProperties.TRACK_DOMAIN, this.trackDomain))
             .setDeactivate(prop.getBooleanProperty(MappIntelligenceProperties.DEACTIVATE, false))
             .setDomain(prop.getListProperty(MappIntelligenceProperties.DOMAIN, this.domain))
+            .setLogLevel(prop.getStringProperty(MappIntelligenceProperties.LOG_LEVEL, "ERROR"))
             .setUseParamsForDefaultPageName(prop.getListProperty(
                 MappIntelligenceProperties.USE_PARAMS_FOR_DEFAULT_PAGE_NAME,
                 this.useParamsForDefaultPageName
@@ -253,7 +284,8 @@ public class MappIntelligenceConfig {
                 }
             }
             catch (PatternSyntaxException e) {
-                this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+                MappIntelligenceDebugLogger l = new MappIntelligenceDebugLogger(this.logger, this.logLevel);
+                l.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
             }
         }
 
@@ -424,6 +456,66 @@ public class MappIntelligenceConfig {
     }
 
     /**
+     * @param ch HTTP Header for Sec-CH-UA
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setClientHintUserAgent(String ch) {
+        this.clientHintUserAgent = this.getOrDefault(URLString.decode(ch), this.clientHintUserAgent);
+        return this;
+    }
+
+    /**
+     * @param ch HTTP Header for Sec-CH-UA-Full-Version-List
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setClientHintUserAgentFullVersionList(String ch) {
+        this.clientHintUserAgentFullVersionList = this.getOrDefault(URLString.decode(ch), this.clientHintUserAgentFullVersionList);
+        return this;
+    }
+
+    /**
+     * @param ch HTTP Header for Sec-CH-UA-Model
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setClientHintUserAgentModel(String ch) {
+        this.clientHintUserAgentModel = this.getOrDefault(URLString.decode(ch), this.clientHintUserAgentModel);
+        return this;
+    }
+
+    /**
+     * @param ch HTTP Header for Sec-CH-UA-Mobile
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setClientHintUserAgentMobile(String ch) {
+        this.clientHintUserAgentMobile = this.getOrDefault(URLString.decode(ch), this.clientHintUserAgentMobile);
+        return this;
+    }
+
+    /**
+     * @param ch HTTP Header for Sec-CH-UA-Platform
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setClientHintUserAgentPlatform(String ch) {
+        this.clientHintUserAgentPlatform = this.getOrDefault(URLString.decode(ch), this.clientHintUserAgentPlatform);
+        return this;
+    }
+
+    /**
+     * @param ch HTTP Header for Sec-CH-UA-Platform-Version
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setClientHintUserAgentPlatformVersion(String ch) {
+        this.clientHintUserAgentPlatformVersion = this.getOrDefault(URLString.decode(ch), this.clientHintUserAgentPlatformVersion);
+        return this;
+    }
+
+    /**
      * @param ra Remote address (ip) from the client
      *
      * @return MappIntelligenceConfig
@@ -515,6 +607,27 @@ public class MappIntelligenceConfig {
     public MappIntelligenceConfig setLogger(MappIntelligenceLogger l) {
         this.logger = this.getOrDefault(l, this.logger);
         return this;
+    }
+
+    /**
+     * @param ll Specify the debug log level
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setLogLevel(int ll) {
+        if (ll >= MappIntelligenceLogLevel.NONE && ll <= MappIntelligenceLogLevel.DEBUG) {
+            this.logLevel = ll;
+        }
+        return this;
+    }
+
+    /**
+     * @param ll Specify the debug log level
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setLogLevel(String ll) {
+        return this.setLogLevel(MappIntelligenceLogLevel.getValue(ll));
     }
 
     /**
@@ -806,6 +919,7 @@ public class MappIntelligenceConfig {
         config.put("deactivate", this.deactivate);
         config.put("deactivateByInAndExclude", this.deactivateByInAndExclude);
         config.put("logger", this.logger);
+        config.put("logLevel", this.logLevel);
         config.put("consumer", this.consumer);
         config.put("consumerType", this.consumerType);
         config.put("filePath", this.filePath);
@@ -820,6 +934,12 @@ public class MappIntelligenceConfig {
         config.put("forceSSL", this.forceSSL);
         config.put("useParamsForDefaultPageName", this.useParamsForDefaultPageName);
         config.put("userAgent", this.userAgent);
+        config.put("clientHintUserAgent", this.clientHintUserAgent);
+        config.put("clientHintUserAgentFullVersionList", this.clientHintUserAgentFullVersionList);
+        config.put("clientHintUserAgentModel", this.clientHintUserAgentModel);
+        config.put("clientHintUserAgentMobile", this.clientHintUserAgentMobile);
+        config.put("clientHintUserAgentPlatform", this.clientHintUserAgentPlatform);
+        config.put("clientHintUserAgentPlatformVersion", this.clientHintUserAgentPlatformVersion);
         config.put("remoteAddress", this.remoteAddress);
         config.put("referrerURL", this.referrerURL);
         config.put("requestURL", this.requestURL);

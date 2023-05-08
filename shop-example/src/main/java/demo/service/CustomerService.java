@@ -11,6 +11,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 public class CustomerService {
     private final HttpServletRequest request;
     private final HttpServletResponse response;

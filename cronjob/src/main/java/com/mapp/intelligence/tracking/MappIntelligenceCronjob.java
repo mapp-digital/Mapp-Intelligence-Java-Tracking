@@ -80,8 +80,9 @@ public class MappIntelligenceCronjob {
         this.filePrefix = (String) this.mic.get(MappIntelligenceOptions.FILE_PREFIX);
         this.deactivate = (boolean) this.mic.get(MappIntelligenceOptions.DEACTIVATE);
 
+        int logLevel = (int) this.mic.get(MappIntelligenceOptions.LOG_LEVEL);
         MappIntelligenceLogger l = (MappIntelligenceLogger) this.mic.get(MappIntelligenceOptions.LOGGER);
-        this.logger = new MappIntelligenceDebugLogger(l);
+        this.logger = new MappIntelligenceDebugLogger(l, logLevel);
 
         this.mic.put("consumerType", MappIntelligenceConsumerType.HTTP_CLIENT);
         this.mic.put("deactivate", this.deactivate);
@@ -100,6 +101,7 @@ public class MappIntelligenceCronjob {
         options.addOption("c", MappIntelligenceOptions.CONFIG, true, MappIntelligenceMessages.OPTION_CONFIG);
         options.addOption("f", MappIntelligenceOptions.FILE_PATH, true, MappIntelligenceMessages.OPTION_FILE_PATH);
         options.addOption("p", MappIntelligenceOptions.FILE_PREFIX, true, MappIntelligenceMessages.OPTION_FILE_PREFIX);
+        options.addOption("ll", MappIntelligenceOptions.LOG_LEVEL, true, MappIntelligenceMessages.OPTION_LOG_LEVEL);
 
         options.addOption(
             Option.builder().longOpt(MappIntelligenceOptions.HELP).desc(MappIntelligenceMessages.OPTION_HELP).build()
@@ -119,6 +121,7 @@ public class MappIntelligenceCronjob {
      */
     private static void displayHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
+        formatter.setOptionComparator(null);
         formatter.printHelp(
             MappIntelligenceMessages.HELP_SYNTAX,
             MappIntelligenceMessages.HELP_HEADER,
@@ -154,6 +157,11 @@ public class MappIntelligenceCronjob {
 
             if (line.hasOption(MappIntelligenceOptions.DEBUG)) {
                 mappConfig.setLogger(new MappIntelligenceCronjobLogger());
+            }
+
+            if (line.hasOption(MappIntelligenceOptions.LOG_LEVEL)) {
+                String logLevel = line.getOptionValue(MappIntelligenceOptions.LOG_LEVEL);
+                mappConfig.setLogLevel(logLevel);
             }
 
             if (line.hasOption(MappIntelligenceOptions.TRACK_ID)) {
@@ -214,19 +222,23 @@ public class MappIntelligenceCronjob {
      */
     public int run() {
         if (this.deactivate) {
-            this.logger.log(MappIntelligenceMessages.TRACKING_IS_DEACTIVATED);
+            this.logger.info(MappIntelligenceMessages.TRACKING_IS_DEACTIVATED);
             return EXIT_STATUS_SUCCESS;
         }
 
         if (MappIntelligenceFile.checkTemporaryFiles(this.filePath, this.filePrefix)) {
-            this.logger.log(MappIntelligenceMessages.RENAME_EXPIRED_TEMPORARY_FILE);
+            this.logger.error(MappIntelligenceMessages.RENAME_EXPIRED_TEMPORARY_FILE);
         }
 
         File[] files;
         try {
             files = MappIntelligenceFile.getLogFiles(this.filePath, this.filePrefix);
+            if (files.length <= 0) {
+                this.logger.info(MappIntelligenceMessages.REQUEST_LOG_FILES_NOT_FOUND, this.filePath);
+                return EXIT_STATUS_FAIL;
+            }
         } catch (MappIntelligenceException e) {
-            this.logger.log(e.getMessage());
+            this.logger.error(e.getMessage());
             return EXIT_STATUS_FAIL;
         }
 

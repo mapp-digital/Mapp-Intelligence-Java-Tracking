@@ -15,6 +15,10 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 @WebServlet("/search/*")
 public class SearchServlet  extends HttpServlet {
     private static final long serialVersionUID = 1L;

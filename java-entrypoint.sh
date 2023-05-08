@@ -82,15 +82,14 @@ fi
 
 echo "install maven dependency"
 if [ "${APT_GET}" = "file" ]; then
-    su -c "mvn -T 1C ${EXLUDE_SHOP_EXAMPLE} install" -m "${USER_NAME}"
+    su -c "mvn -T 1C clean install" -m "${USER_NAME}"
 else
-    sudo -su ${USER_NAME} mvn -T 1C "${EXLUDE_SHOP_EXAMPLE}" install
+    sudo -su ${USER_NAME} mvn -T 1C clean install
 fi
 
 if [ "${BUILD_TYPE}" = "release" ]; then
     echo "release java lib"
 
-    cd tracking  || exit 1
     if [ "${APT_GET}" = "file" ]; then
         su -c "mvn release:clean" -m "${USER_NAME}"
         su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
@@ -105,31 +104,16 @@ if [ "${BUILD_TYPE}" = "release" ]; then
         sudo -su ${USER_NAME} git push origin master
     fi
 
-    cd ../cronjob  || exit 1
-    if [ "${APT_GET}" = "file" ]; then
-        su -c "mvn release:clean" -m "${USER_NAME}"
-        su -c "mvn --batch-mode release:prepare -Dresume=false" -m "${USER_NAME}"
-        su -c "mvn release:perform" -m "${USER_NAME}"
-        su -c "git push --tags" -m "${USER_NAME}"
-        su -c "git push origin master" -m "${USER_NAME}"
-    else
-        sudo -su ${USER_NAME} mvn release:clean
-        sudo -su ${USER_NAME} mvn --batch-mode release -Dresume=false
-        sudo -su ${USER_NAME} mvn release:perform
-        sudo -su ${USER_NAME} git push --tags
-        sudo -su ${USER_NAME} git push origin master
-    fi
-
     exit $?
 fi
 
 echo "test, build and deploy java lib"
 if [ "${APT_GET}" = "file" ]; then
-    su -c "mvn ${EXLUDE_SHOP_EXAMPLE} clean checkstyle:check package -B" -m "${USER_NAME}"
+    su -c "mvn clean checkstyle:check package -B" -m "${USER_NAME}"
     su -c "cp ./tracking/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar" -m "${USER_NAME}"
     su -c "cp ./cronjob/target/mapp-intelligence-java-cronjob.jar ./dist/mapp-intelligence-java-cronjob.jar" -m "${USER_NAME}"
 else
-    sudo -su ${USER_NAME} mvn "${EXLUDE_SHOP_EXAMPLE}" clean checkstyle:check package -B
+    sudo -su ${USER_NAME} mvn clean checkstyle:check package -B
     sudo -su ${USER_NAME} cp ./tracking/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
     sudo -su ${USER_NAME} cp ./cronjob/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
 fi

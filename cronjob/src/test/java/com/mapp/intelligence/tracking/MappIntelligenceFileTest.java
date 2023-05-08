@@ -3,6 +3,8 @@ package com.mapp.intelligence.tracking;
 import org.junit.After;
 import org.junit.Test;
 
+import java.io.File;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -62,10 +64,10 @@ public class MappIntelligenceFileTest {
     @Test
     public void testGetLogFiles2() {
         try {
-            MappIntelligenceFile.getLogFiles(FILE_PATH, FILE_PREFIX);
-            fail();
+            File[] files = MappIntelligenceFile.getLogFiles(FILE_PATH, FILE_PREFIX);
+            assertEquals(0, files.length);
         } catch (Exception e) {
-            assertTrue(e.getMessage().contains("Request log files '" + FILE_PATH + "' not found"));
+            fail();
         }
     }
 

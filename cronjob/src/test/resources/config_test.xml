@@ -6,6 +6,7 @@
     <entry key="tracking.trackDomain">analytics01.wt-eu02.net</entry>
     <entry key="tracking.deactivate">false</entry>
     <entry key="tracking.domain">sub.domain.tld,foo.bar</entry>
+    <entry key="tracking.logLevel">debug</entry>
     <entry key="tracking.useParamsForDefaultPageName">aa,bb,cc</entry>
 
     <!-- [consumer] -->

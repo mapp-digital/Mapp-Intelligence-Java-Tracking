@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.mapp.intelligence.tracking.MappIntelligenceLogLevel;
 import com.mapp.intelligence.tracking.MappIntelligenceUnitUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -95,6 +96,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
     public void testNewConsumerHttpClient() {
         Map<String, Object> config = new HashMap<>();
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         new MappIntelligenceConsumerHttpClient(config);
 
         assertTrue(this.outContent.toString().trim().isEmpty());
@@ -106,6 +108,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
         config.put("trackId", "123451234512345");
         config.put("trackDomain", "analytics01.wt-eu02.net");
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
         List<String> data = new ArrayList<>();
@@ -122,6 +125,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
         config.put("trackId", "123451234512345");
         config.put("trackDomain", "test-batch-request.webtrekk-tracking-test.net");
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
         List<String> data = new ArrayList<>();
@@ -136,6 +140,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
         config.put("trackId", "123451234512345");
         config.put("trackDomain", "analytics01.wt-eu02.net");
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         config.put("forceSSL", false);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
@@ -153,6 +158,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
         config.put("trackId", "111111111111111");
         config.put("trackDomain", "analytics01.wt-eu02.net");
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
         List<String> data = new ArrayList<>();
@@ -168,6 +174,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
     public void testMaxBatchSize() {
         Map<String, Object> config = new HashMap<>();
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
         assertFalse(consumer.sendBatch(contentMaxBatchSize));
@@ -178,6 +185,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
     public void testMaxPayloadSize() {
         Map<String, Object> config = new HashMap<>();
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
         assertFalse(consumer.sendBatch(maxPayloadSize));

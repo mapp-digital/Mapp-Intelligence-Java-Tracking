@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 public class ProductModel {
     private static final String JSON_PRODUCTS = Objects.requireNonNull(ProductModel.class.getClassLoader().getResource("products.json")).getFile();
     private List<Product> products = new ArrayList<>();
@@ -18,6 +22,9 @@ public class ProductModel {
     private List<Product> featureProducts = new ArrayList<>();
     private List<Product> latestProducts = new ArrayList<>();
 
+    /**
+     *
+     */
     public ProductModel() {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(JSON_PRODUCTS)) {
@@ -31,6 +38,9 @@ public class ProductModel {
         }
     }
 
+    /**
+     * @param jsonProduct Products
+     */
     private void addProduct(JSONObject jsonProduct) {
         Product product = new Product();
 
@@ -60,10 +70,17 @@ public class ProductModel {
         this.products.add(product);
     }
 
+    /**
+     * @return all products
+     */
     public List<Product> findAll() {
         return this.products;
     }
 
+    /**
+     * @param cat category
+     * @return all products of this category
+     */
     public List<Product> findAllByCategory(String cat) {
         List<Product> p = new ArrayList<>();
         for (Product product : this.products) {
@@ -75,6 +92,10 @@ public class ProductModel {
         return p;
     }
 
+    /**
+     * @param searchTerm search term
+     * @return all searching products
+     */
     public List<Product> findAllBySearch(String searchTerm) {
         List<Product> p = new ArrayList<>();
         String category;
@@ -95,18 +116,31 @@ public class ProductModel {
         return p;
     }
 
+    /**
+     * @return best seller products
+     */
     public List<Product> findBestSeller() {
         return this.bestSeller;
     }
 
+    /**
+     * @return feature products
+     */
     public List<Product> findFeature() {
         return this.featureProducts;
     }
 
+    /**
+     * @return latest products
+     */
     public List<Product> findLatest() {
         return this.latestProducts;
     }
 
+    /**
+     * @param id product id
+     * @return product
+     */
     public Product find(int id) {
         for (Product product : this.products) {
             if (id == product.getId()) {
@@ -117,6 +151,10 @@ public class ProductModel {
         return null;
     }
 
+    /**
+     * @param sku product sku
+     * @return product
+     */
     public Product find(String sku) {
         for (Product product : this.products) {
             if (sku.equals(product.getSku())) {

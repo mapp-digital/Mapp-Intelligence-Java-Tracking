@@ -17,6 +17,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 @WebServlet("/img/*")
 public class TrackingServlet  extends HttpServlet {
     public TrackingServlet() {

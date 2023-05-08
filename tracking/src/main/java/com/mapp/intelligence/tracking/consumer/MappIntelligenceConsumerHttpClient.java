@@ -54,7 +54,7 @@ public class MappIntelligenceConsumerHttpClient extends AbstractMappIntelligence
 
         String urlString = this.getUrl();
         long currentBatchSize = batchContent.size();
-        this.logger.log(MappIntelligenceMessages.SEND_BATCH_DATA, urlString, currentBatchSize);
+        this.logger.debug(MappIntelligenceMessages.SEND_BATCH_DATA, urlString, currentBatchSize);
 
         try {
             URL url = new URL(urlString);
@@ -74,10 +74,10 @@ public class MappIntelligenceConsumerHttpClient extends AbstractMappIntelligence
             con.connect();
 
             int httpStatus = con.getResponseCode();
-            this.logger.log(MappIntelligenceMessages.BATCH_REQUEST_STATUS, httpStatus);
+            this.logger.debug(MappIntelligenceMessages.BATCH_REQUEST_STATUS, httpStatus);
 
-            if (httpStatus > HttpURLConnection.HTTP_BAD_REQUEST) {
-                this.logger.log(MappIntelligenceMessages.BATCH_RESPONSE_TEXT, httpStatus, "HTTP Status " + httpStatus);
+            if (httpStatus >= HttpURLConnection.HTTP_BAD_REQUEST) {
+                this.logger.warn(MappIntelligenceMessages.BATCH_RESPONSE_TEXT, httpStatus, "HTTP Status " + httpStatus);
 
                 con.disconnect();
                 return false;
@@ -85,7 +85,7 @@ public class MappIntelligenceConsumerHttpClient extends AbstractMappIntelligence
 
             con.disconnect();
         } catch (IOException e) {
-            this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+            this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
         }
 
         return true;

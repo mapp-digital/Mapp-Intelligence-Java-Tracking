@@ -15,6 +15,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 @WebServlet("/order/*")
 public class OrderServlet  extends HttpServlet {
     private static final long serialVersionUID = 1L;

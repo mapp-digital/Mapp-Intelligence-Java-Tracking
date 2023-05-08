@@ -1,5 +1,6 @@
 package com.mapp.intelligence.tracking.queue;
 
+import com.mapp.intelligence.tracking.MappIntelligenceLogLevel;
 import com.mapp.intelligence.tracking.MappIntelligenceUnitUtil;
 import com.mapp.intelligence.tracking.config.MappIntelligenceConfig;
 import com.mapp.intelligence.tracking.MappIntelligenceConsumer;
@@ -77,8 +78,9 @@ public class MappIntelligenceTrackingQueueTest {
     @Test
     public void testMaxBatchSize1() {
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setMaxBatchSize(10);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setMaxBatchSize(10);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
 
@@ -103,8 +105,9 @@ public class MappIntelligenceTrackingQueueTest {
     @Test
     public void testMaxBatchSize2() {
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setMaxBatchSize(10);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setMaxBatchSize(10);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
 
@@ -131,8 +134,9 @@ public class MappIntelligenceTrackingQueueTest {
         String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setUserAgent(userAgent);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setUserAgent(userAgent);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -148,8 +152,9 @@ public class MappIntelligenceTrackingQueueTest {
         String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setUserAgent(userAgent);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setUserAgent(userAgent);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0");
@@ -165,8 +170,9 @@ public class MappIntelligenceTrackingQueueTest {
         String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setUserAgent(userAgent);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setUserAgent(userAgent);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0&X-WT-UA=test");
@@ -178,12 +184,109 @@ public class MappIntelligenceTrackingQueueTest {
     }
 
     @Test
+    public void testWithClientHints() {
+        String clientHintUserAgent = "%22Chromium%22%3Bv%3D%22112%22%2C%20%22Google%20Chrome%22%3Bv%3D%22112%22%2C%20%22Not%3AA-Brand%22%3Bv%3D%2299%20";
+        String clientHintUserAgentFullVersionList = "%22Chromium%22%3Bv%3D%22110.0.5481.65%22%2C%20%22Not%20A%28Brand%22%3Bv%3D%2224.0.0.0%22%2C%20%22Google%20Chrome%22%3Bv%3D%22110.0.5481.65%22";
+        String clientHintUserAgentMobile = "%3F1";
+        String clientHintUserAgentModel = "%22SM-A715F%22";
+        String clientHintUserAgentPlatform = "%22macOS%22";
+        String clientHintUserAgentPlatformVersion = "%2213.0.0%22";
+
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setClientHintUserAgent(clientHintUserAgent)
+            .setClientHintUserAgentFullVersionList(clientHintUserAgentFullVersionList)
+            .setClientHintUserAgentMobile(clientHintUserAgentMobile)
+            .setClientHintUserAgentModel(clientHintUserAgentModel)
+            .setClientHintUserAgentPlatform(clientHintUserAgentPlatform)
+            .setClientHintUserAgentPlatformVersion(clientHintUserAgentPlatformVersion);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.add(new HashMap<>());
+
+        List<String> requests = MappIntelligenceUnitUtil.getQueue(queue);
+        assertEquals(1, requests.size());
+        assertTrue(requests.get(0).matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.+"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA=" + clientHintUserAgent));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-FULL-VERSION-LIST=" + clientHintUserAgentFullVersionList));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MODEL=" + clientHintUserAgentModel));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MOBILE=" + clientHintUserAgentMobile));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM=" + clientHintUserAgentPlatform));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM_VERSION=" + clientHintUserAgentPlatformVersion));
+    }
+
+    @Test
+    public void testWithClientHints2() {
+        String clientHintUserAgent = "%22Chromium%22%3Bv%3D%22112%22%2C%20%22Google%20Chrome%22%3Bv%3D%22112%22%2C%20%22Not%3AA-Brand%22%3Bv%3D%2299%20";
+        String clientHintUserAgentFullVersionList = "%22Chromium%22%3Bv%3D%22110.0.5481.65%22%2C%20%22Not%20A%28Brand%22%3Bv%3D%2224.0.0.0%22%2C%20%22Google%20Chrome%22%3Bv%3D%22110.0.5481.65%22";
+        String clientHintUserAgentMobile = "%3F1";
+        String clientHintUserAgentModel = "%22SM-A715F%22";
+        String clientHintUserAgentPlatform = "%22macOS%22";
+        String clientHintUserAgentPlatformVersion = "%2213.0.0%22";
+
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setClientHintUserAgent(clientHintUserAgent)
+            .setClientHintUserAgentFullVersionList(clientHintUserAgentFullVersionList)
+            .setClientHintUserAgentMobile(clientHintUserAgentMobile)
+            .setClientHintUserAgentModel(clientHintUserAgentModel)
+            .setClientHintUserAgentPlatform(clientHintUserAgentPlatform)
+            .setClientHintUserAgentPlatformVersion(clientHintUserAgentPlatformVersion);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.add("wt?p=300,0");
+
+        List<String> requests = MappIntelligenceUnitUtil.getQueue(queue);
+        assertEquals(1, requests.size());
+        assertTrue(requests.get(0).matches("^wt\\?p=300,0&.+"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA=" + clientHintUserAgent));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-FULL-VERSION-LIST=" + clientHintUserAgentFullVersionList));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MODEL=" + clientHintUserAgentModel));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MOBILE=" + clientHintUserAgentMobile));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM=" + clientHintUserAgentPlatform));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM_VERSION=" + clientHintUserAgentPlatformVersion));
+    }
+
+    @Test
+    public void testWithClientHints3() {
+        String clientHintUserAgent = "%22Chromium%22%3Bv%3D%22112%22%2C%20%22Google%20Chrome%22%3Bv%3D%22112%22%2C%20%22Not%3AA-Brand%22%3Bv%3D%2299%20";
+        String clientHintUserAgentFullVersionList = "%22Chromium%22%3Bv%3D%22110.0.5481.65%22%2C%20%22Not%20A%28Brand%22%3Bv%3D%2224.0.0.0%22%2C%20%22Google%20Chrome%22%3Bv%3D%22110.0.5481.65%22";
+        String clientHintUserAgentMobile = "%3F1";
+        String clientHintUserAgentModel = "%22SM-A715F%22";
+        String clientHintUserAgentPlatform = "%22macOS%22";
+        String clientHintUserAgentPlatformVersion = "%2213.0.0%22";
+
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setClientHintUserAgent(clientHintUserAgent)
+            .setClientHintUserAgentFullVersionList(clientHintUserAgentFullVersionList)
+            .setClientHintUserAgentMobile(clientHintUserAgentMobile)
+            .setClientHintUserAgentModel(clientHintUserAgentModel)
+            .setClientHintUserAgentPlatform(clientHintUserAgentPlatform)
+            .setClientHintUserAgentPlatformVersion(clientHintUserAgentPlatformVersion);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.add("wt?p=300,0&X-WT-SEC-CH-UA=sec-ch-ua&X-WT-SEC-CH-UA-FULL-VERSION-LIST=sec-ch-ua-full-version-list&X-WT-SEC-CH-UA-MODEL=sec-ch-ua-model&X-WT-SEC-CH-UA-MOBILE=sec-ch-ua-mobile&X-WT-SEC-CH-UA-PLATFORM=sec-ch-ua-platform&X-WT-SEC-CH-UA-PLATFORM_VERSION=sec-ch-ua-platform_version");
+
+        List<String> requests = MappIntelligenceUnitUtil.getQueue(queue);
+        assertEquals(1, requests.size());
+        assertTrue(requests.get(0).matches("^wt\\?p=300,0&.+"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA=sec-ch-ua"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-FULL-VERSION-LIST=sec-ch-ua-full-version-list"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MODEL=sec-ch-ua-model"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MOBILE=sec-ch-ua-mobile"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM=sec-ch-ua-platform"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM_VERSION=sec-ch-ua-platform_version"));
+    }
+
+    @Test
     public void testWithRemoteAddr() {
         String remoteAddr = "127.0.0.1";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setRemoteAddress(remoteAddr);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setRemoteAddress(remoteAddr);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -199,8 +302,9 @@ public class MappIntelligenceTrackingQueueTest {
         String remoteAddr = "127.0.0.1";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setRemoteAddress(remoteAddr);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setRemoteAddress(remoteAddr);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0");
@@ -216,8 +320,9 @@ public class MappIntelligenceTrackingQueueTest {
         String remoteAddr = "127.0.0.1";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setRemoteAddress(remoteAddr);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setRemoteAddress(remoteAddr);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0&X-WT-IP=127.0.0.20");
@@ -233,8 +338,9 @@ public class MappIntelligenceTrackingQueueTest {
         String requestURL = "https://sub.domain.tld/path/to/page.html";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setRequestURL(requestURL);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setRequestURL(requestURL);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -249,8 +355,9 @@ public class MappIntelligenceTrackingQueueTest {
     public void testWithSmartPixelEverId() {
         String smartPixelEverId = "2157070685656224066";
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .addCookie("wtstp_eid", smartPixelEverId)
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .addCookie("wtstp_eid", smartPixelEverId)
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -264,8 +371,9 @@ public class MappIntelligenceTrackingQueueTest {
     public void testWithTrackServerEverId() {
         String trackServerEverId = "6157070685656224066";
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .addCookie("wteid_111111111111111", trackServerEverId)
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .addCookie("wteid_111111111111111", trackServerEverId)
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -282,8 +390,9 @@ public class MappIntelligenceTrackingQueueTest {
         oldPixelEverIdCookie += ";100000020686800|2155991359000202180#2156076321300417449";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .addCookie("wt3_eid", oldPixelEverIdCookie)
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .addCookie("wt3_eid", oldPixelEverIdCookie)
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -301,8 +410,9 @@ public class MappIntelligenceTrackingQueueTest {
         oldPixelEverIdCookie += ";100000020686800|2155991359000202180#2156076321300417449";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .addCookie("wt3_eid", oldPixelEverIdCookie)
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .addCookie("wt3_eid", oldPixelEverIdCookie)
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -317,8 +427,9 @@ public class MappIntelligenceTrackingQueueTest {
         String requestURL = "https://sub.domain.tld/path/to/page.html";
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setRequestURL(requestURL);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setRequestURL(requestURL);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add(new HashMap<>());
@@ -541,7 +652,8 @@ public class MappIntelligenceTrackingQueueTest {
     @Test
     public void testFlushEmptyQueueWithDebug() {
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
 
@@ -553,7 +665,8 @@ public class MappIntelligenceTrackingQueueTest {
     @Test
     public void testFlushQueueFailed1() {
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0");
@@ -570,7 +683,8 @@ public class MappIntelligenceTrackingQueueTest {
     @Test
     public void testFlushHTTPQueueFailed2() {
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0");
@@ -588,7 +702,8 @@ public class MappIntelligenceTrackingQueueTest {
     @Test
     public void testFlushHTTPQueueSuccess() {
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("123451234512345", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0");
@@ -614,7 +729,8 @@ public class MappIntelligenceTrackingQueueTest {
             .setConsumerType(MappIntelligenceConsumerType.FILE)
             .setFilePath(tempFilePath)
             .setFilePrefix(tempFilePrefix)
-            .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.add("wt?p=300,0");

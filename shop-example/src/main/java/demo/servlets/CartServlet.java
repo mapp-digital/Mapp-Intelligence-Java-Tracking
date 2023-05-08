@@ -16,6 +16,10 @@ import demo.entities.Product;
 import demo.models.ProductModel;
 import demo.service.TrackingService;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 @WebServlet("/basket/*")
 public class CartServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;

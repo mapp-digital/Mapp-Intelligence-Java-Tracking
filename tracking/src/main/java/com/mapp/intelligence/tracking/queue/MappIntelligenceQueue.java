@@ -79,7 +79,7 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
     private boolean flushQueue() {
         int currentQueueSize = this.queue.size();
         boolean wasRequestSuccessful = true;
-        this.logger.log(String.format(MappIntelligenceMessages.SENT_BATCH_REQUESTS, currentQueueSize));
+        this.logger.debug(String.format(MappIntelligenceMessages.SENT_BATCH_REQUESTS, currentQueueSize));
 
         while (currentQueueSize > 0 && wasRequestSuccessful) {
             int batchSize = Integer.min(this.maxBatchSize, currentQueueSize);
@@ -88,14 +88,14 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
             wasRequestSuccessful = this.sendBatch(batchContent);
 
             if (!wasRequestSuccessful) {
-                this.logger.log(MappIntelligenceMessages.BATCH_REQUEST_FAILED);
+                this.logger.warn(MappIntelligenceMessages.BATCH_REQUEST_FAILED);
 
                 batchContent.addAll(this.queue);
                 this.queue = batchContent;
             }
 
             currentQueueSize = this.queue.size();
-            this.logger.log(String.format(
+            this.logger.debug(String.format(
                 MappIntelligenceMessages.CURRENT_QUEUE_STATUS,
                 batchSize,
                 currentQueueSize
@@ -103,10 +103,33 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
         }
 
         if (currentQueueSize == 0) {
-            this.logger.log(MappIntelligenceMessages.QUEUE_IS_EMPTY);
+            this.logger.debug(MappIntelligenceMessages.QUEUE_IS_EMPTY);
         }
 
         return wasRequestSuccessful;
+    }
+
+    /**
+     * @param data Query parameter map
+     * @param key Query parameter key
+     * @param value Query parameter value
+     */
+    private void addQueryParameterToMap(Map<String, String> data, String key, String value) {
+        if (!value.isEmpty()) {
+            data.put(key, value);
+        }
+    }
+
+    /**
+     * @param str Tracking request data
+     * @param data Query parameter map
+     * @param key Query parameter key
+     * @param value Query parameter value
+     */
+    private void addNotExistingQueryParameterToMap(String str, Map<String, String> data, String key, String value) {
+        if (!str.contains(key)) {
+            this.addQueryParameterToMap(data, key, value);
+        }
     }
 
     /**
@@ -123,26 +146,20 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
         String data = d;
         if (!data.isEmpty()) {
             Map<String, String> params = new HashMap<>();
-
-            if (!data.contains(MappIntelligenceParameter.USER_AGENT)) {
-                String ua = this.getUserAgent();
-                if (!ua.isEmpty()) {
-                    params.put(MappIntelligenceParameter.USER_AGENT, ua);
-                }
-            }
-
-            if (!data.contains(MappIntelligenceParameter.USER_IP)) {
-                String userIP = this.getUserIP();
-                if (!userIP.isEmpty()) {
-                    params.put(MappIntelligenceParameter.USER_IP, userIP);
-                }
-            }
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.USER_AGENT, this.getUserAgent());
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.USER_IP, this.getUserIP());
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT, this.getClientHintUserAgent());
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_FULL_VERSION_LIST, this.getClientHintUserAgentFullVersionList());
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_MODEL, this.getClientHintUserAgentModel());
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_MOBILE, this.getClientHintUserAgentMobile());
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_PLATFORM, this.getClientHintUserAgentPlatform());
+            this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_PLATFORM_VERSION, this.getClientHintUserAgentPlatformVersion());
 
             data += (params.size() > 0 ? "&" + URLString.buildQueryString(params) : "");
             this.queue.add(data);
 
             int currentQueueSize = this.queue.size();
-            this.logger.log(String.format(MappIntelligenceMessages.ADD_THE_FOLLOWING_REQUEST_TO_QUEUE, currentQueueSize, data));
+            this.logger.debug(String.format(MappIntelligenceMessages.ADD_THE_FOLLOWING_REQUEST_TO_QUEUE, currentQueueSize, data));
 
             if (currentQueueSize >= this.maxBatchSize) {
                 this.flush();
@@ -154,24 +171,19 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
      * @param data Tracking request data
      */
     public void add(Map<String, String> data) {
-        String eid = this.getEverId();
-        if (!eid.isEmpty()) {
-            data.put(MappIntelligenceParameter.EVER_ID, eid);
-        }
-
-        String ua = this.getUserAgent();
-        if (!ua.isEmpty()) {
-            data.put(MappIntelligenceParameter.USER_AGENT, ua);
-        }
-
-        String userIP = this.getUserIP();
-        if (!userIP.isEmpty()) {
-            data.put(MappIntelligenceParameter.USER_IP, userIP);
-        }
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.USER_IP, this.getUserIP());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.EVER_ID, this.getEverId());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.USER_AGENT, this.getUserAgent());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT, this.getClientHintUserAgent());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_FULL_VERSION_LIST, this.getClientHintUserAgentFullVersionList());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_MODEL, this.getClientHintUserAgentModel());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_MOBILE, this.getClientHintUserAgentMobile());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_PLATFORM, this.getClientHintUserAgentPlatform());
+        this.addQueryParameterToMap(data, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_PLATFORM_VERSION, this.getClientHintUserAgentPlatformVersion());
 
         String requestURI = this.getRequestURI();
         if (!requestURI.isEmpty()) {
-            data.put(MappIntelligenceParameter.PAGE_URL, "https://" + requestURI);
+            this.addQueryParameterToMap(data, MappIntelligenceParameter.PAGE_URL, "https://" + requestURI);
         }
 
         String pageName = data.getOrDefault(MappIntelligenceParameter.PAGE_NAME, this.getDefaultPageName());
@@ -185,7 +197,7 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
         this.queue.add(request);
 
         int currentQueueSize = this.queue.size();
-        this.logger.log(String.format(MappIntelligenceMessages.ADD_THE_FOLLOWING_REQUEST_TO_QUEUE, currentQueueSize, request));
+        this.logger.debug(String.format(MappIntelligenceMessages.ADD_THE_FOLLOWING_REQUEST_TO_QUEUE, currentQueueSize, request));
 
         if (currentQueueSize >= this.maxBatchSize) {
             this.flush();
@@ -210,7 +222,7 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
                         Thread.sleep(this.attemptTimeout);
                     } catch (InterruptedException e) {
                         interrupted = true;
-                        this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+                        this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
                     }
                 }
             }

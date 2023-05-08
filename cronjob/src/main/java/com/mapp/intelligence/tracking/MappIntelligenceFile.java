@@ -134,7 +134,7 @@ class MappIntelligenceFile {
      */
     public static File[] getLogFiles(String filePath, String filePrefix) throws MappIntelligenceException {
         File[] files = getFiles(filePath, filePrefix, LOG_FILE_EXTENSION);
-        if (files == null || files.length <= 0) {
+        if (files == null) {
             throw new MappIntelligenceException(
                 String.format(MappIntelligenceMessages.REQUEST_LOG_FILES_NOT_FOUND, filePath)
             );

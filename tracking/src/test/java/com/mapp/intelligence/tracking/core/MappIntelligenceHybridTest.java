@@ -1,9 +1,6 @@
 package com.mapp.intelligence.tracking.core;
 
-import com.mapp.intelligence.tracking.MappIntelligence;
-import com.mapp.intelligence.tracking.MappIntelligenceConsumer;
-import com.mapp.intelligence.tracking.MappIntelligenceCookie;
-import com.mapp.intelligence.tracking.MappIntelligenceUnitUtil;
+import com.mapp.intelligence.tracking.*;
 import com.mapp.intelligence.tracking.config.MappIntelligenceConfig;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerType;
 import org.junit.After;
@@ -150,7 +147,8 @@ public class MappIntelligenceHybridTest {
     @Test
     public void testSetUserIdFailed1() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-            .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         assertNull(mappIntelligence.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
@@ -161,7 +159,8 @@ public class MappIntelligenceHybridTest {
     public void testSetUserIdFailed2() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
             .setTrackId("111111111111111")
-            .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         assertNull(mappIntelligence.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
@@ -172,7 +171,8 @@ public class MappIntelligenceHybridTest {
     public void testSetUserIdFailed3() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
             .setTrackDomain("analytics01.wt-eu02.net")
-            .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         assertNull(mappIntelligence.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));

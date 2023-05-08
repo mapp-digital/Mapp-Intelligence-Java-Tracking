@@ -1,5 +1,6 @@
 package com.mapp.intelligence.tracking.consumer;
 
+import com.mapp.intelligence.tracking.MappIntelligenceLogLevel;
 import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 
 import java.io.BufferedReader;
@@ -99,7 +100,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
             this.fileWriter = new FileWriter(this.file.getAbsoluteFile(), true);
             this.bufferedWriter = new BufferedWriter(this.fileWriter);
         } catch (IOException e) {
-            this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+            this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
         }
     }
 
@@ -115,14 +116,14 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
         File newTempFile = new File(newTempFileName);
         try {
             if (!newTempFile.exists()) {
-                this.logger.log(
+                this.logger.debug(
                     MappIntelligenceMessages.CREATE_NEW_LOG_FILE,
                     newTempFile.getName(),
                     newTempFile.getAbsoluteFile().getPath(),
                     newTempFile.createNewFile()
                 );
             } else {
-                this.logger.log(
+                this.logger.debug(
                     MappIntelligenceMessages.USE_EXISTING_LOG_FILE,
                     newTempFile.getName(),
                     newTempFile.getAbsoluteFile().getPath()
@@ -132,7 +133,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
             this.file = newTempFile;
             this.createFileWriter();
         } catch (IOException e) {
-            this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+            this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
         }
     }
 
@@ -150,7 +151,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
                 }
             }
         } catch (IOException e) {
-            this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+            this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
         }
 
         return lines;
@@ -202,7 +203,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
         if (this.file.renameTo(renamedFile)) {
             this.searchWriteableFile();
         } else {
-            this.logger.log(MappIntelligenceMessages.CANNOT_RENAME_TEMPORARY_FILE);
+            this.logger.error(MappIntelligenceMessages.CANNOT_RENAME_TEMPORARY_FILE);
             this.createNewTempFile();
         }
     }
@@ -227,7 +228,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
                 this.bufferedWriter.close();
                 this.fileWriter.close();
             } catch (IOException e) {
-                this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+                this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
             }
         }
     }
@@ -260,9 +261,9 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
             this.bufferedWriter.flush();
 
             long currentBatchSize = batchContent.size();
-            this.logger.log(MappIntelligenceMessages.WRITE_BATCH_DATA, this.file.getName(), currentBatchSize);
+            this.logger.debug(MappIntelligenceMessages.WRITE_BATCH_DATA, this.file.getName(), currentBatchSize);
         } catch (IOException e) {
-            this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+            this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
         }
 
         return true;

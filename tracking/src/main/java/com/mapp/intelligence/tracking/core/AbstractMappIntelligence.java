@@ -57,8 +57,9 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
         Map<String, Object> mappIntelligenceConfig = config.build();
         this.queue = new MappIntelligenceQueue(mappIntelligenceConfig);
 
+        int logLevel = (int) mappIntelligenceConfig.get("logLevel");
         MappIntelligenceLogger l = (MappIntelligenceLogger) mappIntelligenceConfig.get("logger");
-        this.logger = new MappIntelligenceDebugLogger(l);
+        this.logger = new MappIntelligenceDebugLogger(l, logLevel);
 
         this.statistics = (Integer) mappIntelligenceConfig.get("statistics");
         this.deactivate = (boolean) mappIntelligenceConfig.get("deactivate");
@@ -84,7 +85,7 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
     @Override
     public final MappIntelligenceCookie getUserIdCookie(String pixelVersion, String context) {
         if (this.trackId.isEmpty() || this.trackDomain.isEmpty()) {
-            this.logger.log(MappIntelligenceMessages.REQUIRED_TRACK_ID_AND_DOMAIN_FOR_COOKIE);
+            this.logger.error(MappIntelligenceMessages.REQUIRED_TRACK_ID_AND_DOMAIN_FOR_COOKIE);
             return null;
         }
 

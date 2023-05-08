@@ -19,6 +19,7 @@ class MappIntelligenceOptions {
     public static final String FILE_PREFIX = "filePrefix";
     public static final String DEACTIVATE = "deactivate";
     public static final String LOGGER = "logger";
+    public static final String LOG_LEVEL = "logLevel";
     public static final String HELP = "help";
     public static final String DEBUG = "debug";
     public static final String VERSION = "version";

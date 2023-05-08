@@ -15,6 +15,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 class CustomLogger implements MappIntelligenceLogger {
     /**
      * @param msg Debug message
@@ -34,6 +38,10 @@ class CustomLogger implements MappIntelligenceLogger {
     }
 }
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 public class TrackingService {
     private final HttpServletRequest request;
     private final HttpServletResponse response;
@@ -55,12 +63,15 @@ public class TrackingService {
             .setTrackId("123451234512345")
             .setTrackDomain("analytics01.wt-eu02.net")
             .setLogger(new CustomLogger())
+            .setLogLevel("DEBUG")
             .setConsumerType(MappIntelligenceConsumerType.FILE)
             .setMaxFileLines(10)
             .setReferrerURL(this.request.getHeader("Referer"))
             .setRequestURL(this.request.getRequestURL().toString())
             .setRemoteAddress(this.request.getRemoteAddr())
-            .setUserAgent(this.request.getHeader("User-Agent"));
+            .setUserAgent(this.request.getHeader("User-Agent"))
+            .setClientHintUserAgentModel(this.request.getHeader("sec-ch-ua-mobile"))
+            .setClientHintUserAgentFullVersionList(this.request.getHeader("sec-ch-ua-full-version-list"));
 
         Cookie[] cookies = this.request.getCookies();
         if (cookies != null) {

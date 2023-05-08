@@ -97,17 +97,17 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
      */
     private boolean isTrackable() {
         if (this.deactivate) {
-            this.logger.log(MappIntelligenceMessages.TRACKING_IS_DEACTIVATED);
+            this.logger.info(MappIntelligenceMessages.TRACKING_IS_DEACTIVATED);
             return false;
         }
 
         if (this.trackId.isEmpty() || this.trackDomain.isEmpty()) {
-            this.logger.log(MappIntelligenceMessages.REQUIRED_TRACK_ID_AND_DOMAIN_FOR_TRACKING);
+            this.logger.error(MappIntelligenceMessages.REQUIRED_TRACK_ID_AND_DOMAIN_FOR_TRACKING);
             return false;
         }
 
         if (this.deactivateByInAndExclude) {
-            this.logger.log(MappIntelligenceMessages.TRACKING_IS_DEACTIVATED_BY_IN_AND_EXCLUDE);
+            this.logger.info(MappIntelligenceMessages.TRACKING_IS_DEACTIVATED_BY_IN_AND_EXCLUDE);
             return false;
         }
 

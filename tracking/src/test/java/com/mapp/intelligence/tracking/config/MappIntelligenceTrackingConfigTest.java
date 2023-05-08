@@ -1,5 +1,6 @@
 package com.mapp.intelligence.tracking.config;
 
+import com.mapp.intelligence.tracking.MappIntelligenceLogLevel;
 import com.mapp.intelligence.tracking.MappIntelligenceUnitUtil;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerType;
 import org.junit.Test;
@@ -24,6 +25,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("", config.get("trackDomain"));
         assertEquals(1, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.HTTP_CLIENT, config.get("consumerType"));
         assertEquals(1, config.get("maxAttempt"));
         assertEquals(100, config.get("attemptTimeout"));
@@ -54,6 +56,12 @@ public class MappIntelligenceTrackingConfigTest {
         mappIntelligenceConfig.setTrackId(null)
             .setTrackDomain(null)
             .setUserAgent(null)
+            .setClientHintUserAgent(null)
+            .setClientHintUserAgentFullVersionList(null)
+            .setClientHintUserAgentMobile(null)
+            .setClientHintUserAgentModel(null)
+            .setClientHintUserAgentPlatform(null)
+            .setClientHintUserAgentPlatformVersion(null)
             .setRemoteAddress(null)
             .setReferrerURL(null)
             .setRequestURL(null)
@@ -75,6 +83,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("", config.get("trackDomain"));
         assertEquals(1, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.HTTP_CLIENT, config.get("consumerType"));
         assertEquals(1, config.get("maxAttempt"));
         assertEquals(100, config.get("attemptTimeout"));
@@ -86,6 +95,12 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(true, config.get("forceSSL"));
         assertEquals(0, ((List<String>) config.get("useParamsForDefaultPageName")).size());
         assertEquals("", config.get("userAgent"));
+        assertEquals("", config.get("clientHintUserAgent"));
+        assertEquals("", config.get("clientHintUserAgentFullVersionList"));
+        assertEquals("", config.get("clientHintUserAgentModel"));
+        assertEquals("", config.get("clientHintUserAgentMobile"));
+        assertEquals("", config.get("clientHintUserAgentPlatform"));
+        assertEquals("", config.get("clientHintUserAgentPlatformVersion"));
         assertEquals("", config.get("remoteAddress"));
         assertEquals("", config.get("referrerURL"));
         assertNull(config.get("requestURL"));
@@ -108,6 +123,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("", config.get("trackDomain"));
         assertEquals(1, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.HTTP_CLIENT, config.get("consumerType"));
         assertEquals(1, config.get("maxAttempt"));
         assertEquals(100, config.get("attemptTimeout"));
@@ -141,6 +157,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("", config.get("trackDomain"));
         assertEquals(1, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.HTTP_CLIENT, config.get("consumerType"));
         assertEquals(1, config.get("maxAttempt"));
         assertEquals(100, config.get("attemptTimeout"));
@@ -174,6 +191,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("analytics01.wt-eu02.net", config.get("trackDomain"));
         assertEquals(2, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.DEBUG, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.FILE, config.get("consumerType"));
         assertEquals(1, config.get("maxAttempt"));
         assertEquals(100, config.get("attemptTimeout"));
@@ -220,6 +238,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("analytics01.wt-eu02.net", config.get("trackDomain"));
         assertEquals(1, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.HTTP_CLIENT, config.get("consumerType"));
         assertEquals(3, config.get("maxAttempt"));
         assertEquals(200, config.get("attemptTimeout"));
@@ -249,6 +268,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("", config.get("trackDomain"));
         assertEquals(1, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.HTTP_CLIENT, config.get("consumerType"));
         assertEquals(1, config.get("maxAttempt"));
         assertEquals(100, config.get("attemptTimeout"));
@@ -282,6 +302,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("analytics01.wt-eu02.net", config.get("trackDomain"));
         assertEquals(2, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.DEBUG, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.FILE, config.get("consumerType"));
         assertEquals(1, config.get("maxAttempt"));
         assertEquals(100, config.get("attemptTimeout"));
@@ -328,6 +349,7 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals("analytics01.wt-eu02.net", config.get("trackDomain"));
         assertEquals(1, ((List<String>) config.get("domain")).size());
         assertNull(config.get("logger"));
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
         assertEquals(MappIntelligenceConsumerType.HTTP_CLIENT, config.get("consumerType"));
         assertEquals(3, config.get("maxAttempt"));
         assertEquals(200, config.get("attemptTimeout"));
@@ -390,12 +412,24 @@ public class MappIntelligenceTrackingConfigTest {
     public void testHeaderData() {
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig();
         mappIntelligenceConfig.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0")
+            .setClientHintUserAgent("%22Chromium%22%3Bv%3D%22112%22%2C%20%22Google%20Chrome%22%3Bv%3D%22112%22%2C%20%22Not%3AA-Brand%22%3Bv%3D%2299%22")
+            .setClientHintUserAgentFullVersionList("%22Chromium%22%3Bv%3D%22110.0.5481.65%22%2C%20%22Not%20A(Brand%22%3Bv%3D%2224.0.0.0%22%2C%20%22Google%20Chrome%22%3Bv%3D%22110.0.5481.65%22")
+            .setClientHintUserAgentMobile("?1")
+            .setClientHintUserAgentModel("%22SM-A715F%22")
+            .setClientHintUserAgentPlatform("%22macOS%22")
+            .setClientHintUserAgentPlatformVersion("%2213.0.0%22")
             .setRemoteAddress("127.0.0.1")
             .setReferrerURL("https://sub.domain.tld/path/to/previous/page.html")
             .setRequestURL("https://sub.domain.tld/path/to/page.html?foo=bar&test=123#abc");
 
         Map<String, Object> config = mappIntelligenceConfig.build();
         assertEquals("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0", config.get("userAgent"));
+        assertEquals("\"Chromium\";v=\"112\", \"Google Chrome\";v=\"112\", \"Not:A-Brand\";v=\"99\"", config.get("clientHintUserAgent"));
+        assertEquals("\"Chromium\";v=\"110.0.5481.65\", \"Not A(Brand\";v=\"24.0.0.0\", \"Google Chrome\";v=\"110.0.5481.65\"", config.get("clientHintUserAgentFullVersionList"));
+        assertEquals("?1", config.get("clientHintUserAgentMobile"));
+        assertEquals("\"SM-A715F\"", config.get("clientHintUserAgentModel"));
+        assertEquals("\"macOS\"", config.get("clientHintUserAgentPlatform"));
+        assertEquals("\"13.0.0\"", config.get("clientHintUserAgentPlatformVersion"));
         assertEquals("127.0.0.1", config.get("remoteAddress"));
         assertEquals("https://sub.domain.tld/path/to/previous/page.html", config.get("referrerURL"));
         assertEquals("sub.domain.tld", ((List<String>) config.get("domain")).get(0));
@@ -859,5 +893,59 @@ public class MappIntelligenceTrackingConfigTest {
 
         Map<String, Object> config = mappIntelligenceConfig.build();
         assertEquals(true, config.get("deactivateByInAndExclude"));
+    }
+
+    @Test
+    public void testSetLogLevelInt() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .setLogLevel(MappIntelligenceLogLevel.INFO);
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(MappIntelligenceLogLevel.INFO, config.get("logLevel"));
+    }
+
+    @Test
+    public void testSetLogLevelInt2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .setLogLevel(7);
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
+    }
+
+    @Test
+    public void testSetLogLevelInt3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .setLogLevel(-7);
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
+    }
+
+    @Test
+    public void testSetLogLevelString() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .setLogLevel("INFO");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(MappIntelligenceLogLevel.INFO, config.get("logLevel"));
+    }
+
+    @Test
+    public void testSetLogLevelString2() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .setLogLevel("info");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(MappIntelligenceLogLevel.INFO, config.get("logLevel"));
+    }
+
+    @Test
+    public void testSetLogLevelString3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .setLogLevel("TRACE");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
     }
 }

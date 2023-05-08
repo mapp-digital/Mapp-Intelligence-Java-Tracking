@@ -1,5 +1,9 @@
 package demo.entities;
 
+/**
+ * @author Mapp Digital c/o Webtrekk GmbH
+ * @version 0.0.1
+ */
 public class User {
     private String firstName;
     private String lastName;

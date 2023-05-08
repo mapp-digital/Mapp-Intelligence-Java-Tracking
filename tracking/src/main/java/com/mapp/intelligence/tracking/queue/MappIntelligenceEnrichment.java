@@ -52,6 +52,30 @@ class MappIntelligenceEnrichment {
      */
     private final String userAgent;
     /**
+     * HTTP header for Sec-CH-UA
+     */
+    private final String clientHintUserAgent;
+    /**
+     * HTTP header for Sec-CH-UA-Full-Version-List
+     */
+    private final String clientHintUserAgentFullVersionList;
+    /**
+     * HTTP header for Sec-CH-UA-Model
+     */
+    private final String clientHintUserAgentModel;
+    /**
+     * HTTP header for Sec-CH-UA-Mobile
+     */
+    private final String clientHintUserAgentMobile;
+    /**
+     * HTTP header for Sec-CH-UA-Platform
+     */
+    private final String clientHintUserAgentPlatform;
+    /**
+     * HTTP header for Sec-CH-UA-Platform-Version
+     */
+    private final String clientHintUserAgentPlatformVersion;
+    /**
      * Remote address (ip) from the client.
      */
     private final String remoteAddress;
@@ -86,14 +110,21 @@ class MappIntelligenceEnrichment {
         this.domain = (List<String>) config.get("domain");
         this.referrerURL = (String) config.get("referrerURL");
         this.userAgent = (String) config.get("userAgent");
+        this.clientHintUserAgent = (String) config.get("clientHintUserAgent");
+        this.clientHintUserAgentFullVersionList = (String) config.get("clientHintUserAgentFullVersionList");
+        this.clientHintUserAgentModel = (String) config.get("clientHintUserAgentModel");
+        this.clientHintUserAgentMobile = (String) config.get("clientHintUserAgentMobile");
+        this.clientHintUserAgentPlatform = (String) config.get("clientHintUserAgentPlatform");
+        this.clientHintUserAgentPlatformVersion = (String) config.get("clientHintUserAgentPlatformVersion");
         this.remoteAddress = (String) config.get("remoteAddress");
         this.requestURL = (URL) config.get("requestURL");
         this.useParamsForDefaultPageName = (List<String>) config.get("useParamsForDefaultPageName");
         this.cookie = (Map<String, String>) config.get("cookie");
         this.everId = this.getUserId();
 
+        int logLevel = (int) config.get("logLevel");
         MappIntelligenceLogger l = (MappIntelligenceLogger) config.get("logger");
-        this.logger = new MappIntelligenceDebugLogger(l);
+        this.logger = new MappIntelligenceDebugLogger(l, logLevel);
     }
 
     /**
@@ -132,7 +163,7 @@ class MappIntelligenceEnrichment {
                     return true;
                 }
             } catch (PatternSyntaxException e) {
-                this.logger.log(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
+                this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
             }
         }
 
@@ -254,6 +285,48 @@ class MappIntelligenceEnrichment {
      */
     protected final String getUserAgent() {
         return this.userAgent;
+    }
+
+    /**
+     * @return String
+     */
+    protected final String getClientHintUserAgent() {
+        return this.clientHintUserAgent;
+    }
+
+    /**
+     * @return String
+     */
+    protected final String getClientHintUserAgentFullVersionList() {
+        return this.clientHintUserAgentFullVersionList;
+    }
+
+    /**
+     * @return String
+     */
+    protected final String getClientHintUserAgentModel() {
+        return this.clientHintUserAgentModel;
+    }
+
+    /**
+     * @return String
+     */
+    protected final String getClientHintUserAgentMobile() {
+        return this.clientHintUserAgentMobile;
+    }
+
+    /**
+     * @return String
+     */
+    protected final String getClientHintUserAgentPlatform() {
+        return this.clientHintUserAgentPlatform;
+    }
+
+    /**
+     * @return String
+     */
+    protected final String getClientHintUserAgentPlatformVersion() {
+        return this.clientHintUserAgentPlatformVersion;
     }
 
     /**

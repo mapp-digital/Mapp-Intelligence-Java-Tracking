@@ -1,5 +1,6 @@
 package com.mapp.intelligence.tracking.consumer;
 
+import com.mapp.intelligence.tracking.MappIntelligenceLogLevel;
 import com.mapp.intelligence.tracking.MappIntelligenceUnitUtil;
 
 import java.io.*;
@@ -107,6 +108,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePathFail);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         new MappIntelligenceConsumerFile(config);
 
         assertTrue(this.outContent.toString().contains("java.io.IOException"));
@@ -118,6 +120,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePathFail);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -132,6 +135,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePath);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         assertFalse(consumer.sendBatch(contentMaxBatchSize));
@@ -144,6 +148,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePath);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         assertFalse(consumer.sendBatch(maxPayloadSize));
@@ -158,6 +163,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePath);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         try {
@@ -180,6 +186,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePath);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -200,6 +207,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePath);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -226,6 +234,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePath", this.tempFilePath);
         config.put("filePrefix", this.tempFilePrefix);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -254,6 +263,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePrefix", this.tempFilePrefix);
         config.put("maxFileLines", 5);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         for (int i = 0; i < 10; i++) {
@@ -285,6 +295,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePrefix", this.tempFilePrefix);
         config.put("maxFileDuration", 1000);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -325,6 +336,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePrefix", this.tempFilePrefix);
         config.put("maxFileSize", 10);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -363,6 +375,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePrefix", this.tempFilePrefix);
         config.put("maxFileLines", 5);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -391,6 +404,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePrefix", this.tempFilePrefix);
         config.put("maxFileLines", 5);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -416,6 +430,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePrefix", this.tempFilePrefix);
         config.put("maxFileLines", 5);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         List<String> data = new ArrayList<>();
@@ -434,6 +449,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("filePrefix", this.tempFilePrefix);
         config.put("maxFileSize", 10);
         config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         for (int i = 0; i < 25; i++) {

@@ -46,8 +46,9 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testTrackIdIsRequired() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-                .setTrackDomain("analytics01.wt-eu02.net")
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setTrackDomain("analytics01.wt-eu02.net")
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")));
@@ -57,8 +58,9 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testTrackDomainIsRequired() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-                .setTrackId("111111111111111")
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setTrackId("111111111111111")
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")));
@@ -96,8 +98,9 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testTrackingIsDeactivated() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-                .setDeactivate(true);
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setDeactivate(true);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.flush());
@@ -146,7 +149,7 @@ public class MappIntelligenceTrackingTest {
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.track((new MappIntelligenceParameterMap())
-                .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
+            .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
         ));
 
         List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
@@ -343,7 +346,8 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testSetUserIdFailed1() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+                .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+                .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertNull(mappIntelligenceTracking.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
@@ -353,8 +357,9 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testSetUserIdFailed2() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-                .setTrackId("111111111111111")
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setTrackId("111111111111111")
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertNull(mappIntelligenceTracking.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
@@ -364,8 +369,9 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testSetUserIdFailed3() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-                .setTrackDomain("analytics01.wt-eu02.net")
-                .setLogger(MappIntelligenceUnitUtil.getCustomLogger());
+            .setTrackDomain("analytics01.wt-eu02.net")
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertNull(mappIntelligenceTracking.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
@@ -561,5 +567,22 @@ public class MappIntelligenceTrackingTest {
         assertEquals("", cookie.getDomain());
         assertTrue(cookie.isSecure());
         assertTrue(cookie.isHttpOnly());
+    }
+
+    @Test
+    public void testDeactivateByInAndExclude() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.addContainsInclude("sub.domain1.tld")
+            .addContainsExclude("sub.domain1.tld")
+            .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
+
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap())
+            .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
+        ));
+
+        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        assertEquals(0, requests.size());
     }
 }

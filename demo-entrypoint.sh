@@ -37,8 +37,9 @@ cp ./../dist/mapp-intelligence-java-cronjob.jar /usr/local/tomcat/temp/
 cp ./../dist/mapp-intelligence-java-tracking.jar /usr/local/tomcat/temp/
 
 # copy shop example to tomcat root
-cp ./target/shop-example-0.0.1.war /usr/local/tomcat/webapps/
-mv /usr/local/tomcat/webapps/shop-example-0.0.1.war /usr/local/tomcat/webapps/ROOT.war
+WAR_FILE=$(ls ./target/ | grep "shop-example-.*.war")
+cp ./target/"${WAR_FILE}" /usr/local/tomcat/webapps/
+mv /usr/local/tomcat/webapps/"${WAR_FILE}" /usr/local/tomcat/webapps/ROOT.war
 
 export JAVA_OPTS="-Xms1024m -Xmx1024m -XX:MaxPermSize=256m"
 
