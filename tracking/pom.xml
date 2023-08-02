@@ -3,13 +3,21 @@
     <parent>
         <artifactId>mapp-intelligence-java-tracking</artifactId>
         <groupId>com.mapp.intelligence.tracking</groupId>
+<<<<<<< HEAD
         <version>0.1.4</version>
+=======
+        <version>0.1.5-SNAPSHOT</version>
+>>>>>>> c624f541cb7939e19bac6718d2cd046bae56521c
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tracking</artifactId>
     <packaging>jar</packaging>
+<<<<<<< HEAD
     <version>0.1.4</version>
+=======
+    <version>0.1.5-SNAPSHOT</version>
+>>>>>>> c624f541cb7939e19bac6718d2cd046bae56521c
     <name>tracking</name>
 
     <build>
