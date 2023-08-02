@@ -15,6 +15,8 @@ public class MappIntelligenceTrackingSessionTest {
 
         Map<String, Object> data = session.getData();
         assertEquals("", data.get("loginStatus"));
+        assertEquals("", data.get("temporarySessionId"));
+        assertEquals("", data.get("temporarySessionIdType"));
         assertEquals(0, ((Map<Integer, String>) data.get("parameter")).size());
     }
 
@@ -39,15 +41,28 @@ public class MappIntelligenceTrackingSessionTest {
     }
 
     @Test
+    public void testSetTemporarySessionId() {
+        MappIntelligenceSession session = new MappIntelligenceSession();
+        session.setTemporarySessionId("abc123");
+
+        Map<String, Object> data = session.getData();
+        assertEquals("abc123", data.get("temporarySessionId"));
+        assertEquals("2.0.0", data.get("temporarySessionIdType"));
+    }
+
+    @Test
     public void testGetQueryParameter() {
         MappIntelligenceSession session = new MappIntelligenceSession();
         session
-                .setLoginStatus("logged in")
-                .setParameter(2, "param2")
-                .setParameter(15, "param15");
+            .setLoginStatus("logged in")
+            .setTemporarySessionId("abc123")
+            .setParameter(2, "param2")
+            .setParameter(15, "param15");
 
         Map<String, String> data = session.getQueryParameter();
         assertEquals("logged in", data.get("cs800"));
+        assertEquals("abc123", data.get("fpv"));
+        assertEquals("2.0.0", data.get("fpt"));
         assertEquals("param2", data.get("cs2"));
         assertEquals("param15", data.get("cs15"));
     }

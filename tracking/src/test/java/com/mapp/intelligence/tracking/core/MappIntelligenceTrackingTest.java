@@ -344,6 +344,129 @@ public class MappIntelligenceTrackingTest {
     }
 
     @Test
+    public void testWithoutTemporarySessionId() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
+            .setCategory(1, "page.test")
+            .setCategory(2, "en")
+            .setCategory(3, "page")
+            .setCategory(4, "test");
+
+        MappIntelligenceSession session = (new MappIntelligenceSession())
+            .setParameter(1, "1");
+
+        MappIntelligenceCustomer customer = (new MappIntelligenceCustomer("24"))
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setCustomIdentifier("foo")
+            .setEmail("john@doe.com");
+
+        MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
+            .setCost(59.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product2 = (new MappIntelligenceProduct("085eo2f009"))
+            .setCost(49.99)
+            .setQuantity(5)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product3 = (new MappIntelligenceProduct("995ee1k906"))
+            .setCost(15.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product4 = (new MappIntelligenceProduct("abc"))
+            .setCost(0).setQuantity(0)
+            .setSoldOut(true)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+            .action(new MappIntelligenceAction("webtrekk_ignore"))
+            .page(page)
+            .campaign(new MappIntelligenceCampaign("wt_mc%3Dfoo.bar"))
+            .order(new MappIntelligenceOrder(360.93))
+            .session(session)
+            .customer(customer)
+            .product((new MappIntelligenceProductCollection())
+                .add(product1).add(product2).add(product3).add(product4)
+            )
+        ));
+
+        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        assertEquals(1, requests.size());
+
+        String request = requests.get(0);
+        assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
+        assertFalse(request.matches(".*&fpv=.*"));
+        assertFalse(request.matches(".*&fpt=.*"));
+    }
+
+    @Test
+    public void testWithTemporarySessionId() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
+            .setCategory(1, "page.test")
+            .setCategory(2, "en")
+            .setCategory(3, "page")
+            .setCategory(4, "test");
+
+        MappIntelligenceSession session = (new MappIntelligenceSession())
+            .setTemporarySessionId("abc123def456")
+            .setParameter(1, "1");
+
+        MappIntelligenceCustomer customer = (new MappIntelligenceCustomer("24"))
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setCustomIdentifier("foo")
+            .setEmail("john@doe.com");
+
+        MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
+            .setCost(59.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product2 = (new MappIntelligenceProduct("085eo2f009"))
+            .setCost(49.99)
+            .setQuantity(5)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product3 = (new MappIntelligenceProduct("995ee1k906"))
+            .setCost(15.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product4 = (new MappIntelligenceProduct("abc"))
+            .setCost(0).setQuantity(0)
+            .setSoldOut(true)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+            .action(new MappIntelligenceAction("webtrekk_ignore"))
+            .page(page)
+            .campaign(new MappIntelligenceCampaign("wt_mc%3Dfoo.bar"))
+            .order(new MappIntelligenceOrder(360.93))
+            .session(session)
+            .customer(customer)
+            .product((new MappIntelligenceProductCollection())
+                .add(product1).add(product2).add(product3).add(product4)
+            )
+        ));
+
+        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        assertEquals(1, requests.size());
+
+        String request = requests.get(0);
+        assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
+        assertTrue(request.matches(".*&fpv=abc123def456.*"));
+        assertTrue(request.matches(".*&fpt=2\\.0\\.0.*"));
+    }
+
+    @Test
     public void testSetUserIdFailed1() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
                 .setLogger(MappIntelligenceUnitUtil.getCustomLogger())

@@ -15,11 +15,13 @@ public class MappIntelligenceParameter {
     public static final String CLIENT_HINT_USER_AGENT_MODEL = "X-WT-SEC-CH-UA-MODEL";
     public static final String CLIENT_HINT_USER_AGENT_MOBILE = "X-WT-SEC-CH-UA-MOBILE";
     public static final String CLIENT_HINT_USER_AGENT_PLATFORM = "X-WT-SEC-CH-UA-PLATFORM";
-    public static final String CLIENT_HINT_USER_AGENT_PLATFORM_VERSION = "X-WT-SEC-CH-UA-PLATFORM_VERSION";
+    public static final String CLIENT_HINT_USER_AGENT_PLATFORM_VERSION = "X-WT-SEC-CH-UA-PLATFORM-VERSION";
 
     // predefined parameter
     public static final String EVER_ID = "eid";
     public static final String CUSTOM_EVER_ID = "ceid";
+    public static final String TEMPORARY_SESSION_ID = "fpv";
+    public static final String TEMPORARY_SESSION_ID_TYPE = "fpt";
     public static final String PAGE_URL = "pu";
     public static final String ACTION_NAME = "ct";
     public static final String CAMPAIGN_ID = "mc";

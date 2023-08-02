@@ -1,6 +1,5 @@
 package com.mapp.intelligence.tracking.data;
 
-import com.mapp.intelligence.tracking.MappIntelligence;
 import com.mapp.intelligence.tracking.MappIntelligenceParameter;
 
 import java.util.HashMap;
@@ -23,10 +22,22 @@ import java.util.Map;
  * @version 0.0.1
  */
 public class MappIntelligenceSession extends AbstractMappIntelligenceData {
+    private final String TEMPORARY_SESSION_ID_TYPE = "2.0.0";
+
     /**
      * Pass the current users login status here.
      */
     private String loginStatus = "";
+    /**
+     * In order to keep the session and the user during a single session, we offer the possibility to set a temporary
+     * session ID that keeps the session together but is not permanently stored on a device.
+     */
+    private String temporarySessionId = "";
+    /**
+     * In order to keep the session and the user during a single session, we offer the possibility to set a temporary
+     * session ID that keeps the session together but is not permanently stored on a device.
+     */
+    private String temporarySessionIdType = "";
     /**
      * Session parameters always refer to a complete session (visit). If the value for the parameter is transmitted
      * during a visit several times, only the first or last value is evaluated, based on the configuration of the
@@ -47,6 +58,8 @@ public class MappIntelligenceSession extends AbstractMappIntelligenceData {
     protected Map<String, String> getQueryList() {
         Map<String, String> queryList = new HashMap<>();
         queryList.put("loginStatus", MappIntelligenceParameter.LOGIN_STATUS);
+        queryList.put("temporarySessionId", MappIntelligenceParameter.TEMPORARY_SESSION_ID);
+        queryList.put("temporarySessionIdType", MappIntelligenceParameter.TEMPORARY_SESSION_ID_TYPE);
         queryList.put("parameter", MappIntelligenceParameter.CUSTOM_SESSION_PARAMETER);
 
         return queryList;
@@ -58,6 +71,8 @@ public class MappIntelligenceSession extends AbstractMappIntelligenceData {
     protected Map<String, Object> toMap() {
         Map<String, Object> data = new HashMap<>();
         data.put("loginStatus", this.loginStatus);
+        data.put("temporarySessionId", this.temporarySessionId);
+        data.put("temporarySessionIdType", this.temporarySessionIdType);
         data.put("parameter", this.parameter);
 
         return data;
@@ -86,6 +101,21 @@ public class MappIntelligenceSession extends AbstractMappIntelligenceData {
      */
     public MappIntelligenceSession setParameter(int i, String v) {
         this.parameter.put(i, v);
+
+        return this;
+    }
+
+    /**
+     * In order to keep the session and the user during a single session, we offer the possibility to set a temporary
+     * session ID that keeps the session together but is not permanently stored on a device.
+     *
+     * @param tSessionId Pass the temporary session ID here
+     *
+     * @return MappIntelligenceSession
+     */
+    public MappIntelligenceSession setTemporarySessionId(String tSessionId) {
+        this.temporarySessionId = tSessionId;
+        this.temporarySessionIdType = this.TEMPORARY_SESSION_ID_TYPE;
 
         return this;
     }

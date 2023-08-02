@@ -212,7 +212,7 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MODEL=" + clientHintUserAgentModel));
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MOBILE=" + clientHintUserAgentMobile));
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM=" + clientHintUserAgentPlatform));
-        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM_VERSION=" + clientHintUserAgentPlatformVersion));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM-VERSION=" + clientHintUserAgentPlatformVersion));
     }
 
     @Test
@@ -244,7 +244,7 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MODEL=" + clientHintUserAgentModel));
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MOBILE=" + clientHintUserAgentMobile));
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM=" + clientHintUserAgentPlatform));
-        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM_VERSION=" + clientHintUserAgentPlatformVersion));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM-VERSION=" + clientHintUserAgentPlatformVersion));
     }
 
     @Test
@@ -266,7 +266,7 @@ public class MappIntelligenceTrackingQueueTest {
             .setClientHintUserAgentPlatformVersion(clientHintUserAgentPlatformVersion);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
-        queue.add("wt?p=300,0&X-WT-SEC-CH-UA=sec-ch-ua&X-WT-SEC-CH-UA-FULL-VERSION-LIST=sec-ch-ua-full-version-list&X-WT-SEC-CH-UA-MODEL=sec-ch-ua-model&X-WT-SEC-CH-UA-MOBILE=sec-ch-ua-mobile&X-WT-SEC-CH-UA-PLATFORM=sec-ch-ua-platform&X-WT-SEC-CH-UA-PLATFORM_VERSION=sec-ch-ua-platform_version");
+        queue.add("wt?p=300,0&X-WT-SEC-CH-UA=sec-ch-ua&X-WT-SEC-CH-UA-FULL-VERSION-LIST=sec-ch-ua-full-version-list&X-WT-SEC-CH-UA-MODEL=sec-ch-ua-model&X-WT-SEC-CH-UA-MOBILE=sec-ch-ua-mobile&X-WT-SEC-CH-UA-PLATFORM=sec-ch-ua-platform&X-WT-SEC-CH-UA-PLATFORM-VERSION=sec-ch-ua-platform-version");
 
         List<String> requests = MappIntelligenceUnitUtil.getQueue(queue);
         assertEquals(1, requests.size());
@@ -276,7 +276,7 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MODEL=sec-ch-ua-model"));
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-MOBILE=sec-ch-ua-mobile"));
         assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM=sec-ch-ua-platform"));
-        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM_VERSION=sec-ch-ua-platform_version"));
+        assertTrue(requests.get(0).contains("&X-WT-SEC-CH-UA-PLATFORM-VERSION=sec-ch-ua-platform-version"));
     }
 
     @Test
