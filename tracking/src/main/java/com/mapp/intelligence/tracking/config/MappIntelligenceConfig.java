@@ -39,6 +39,14 @@ public class MappIntelligenceConfig {
      */
     private static final int DEFAULT_ATTEMPT_TIMEOUT = 100;
     /**
+     * Constant for the default value of max connection timeout.
+     */
+    private static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
+    /**
+     * Constant for the default value of max read timeout.
+     */
+    private static final int DEFAULT_READ_TIMEOUT = 5 * 1000;
+    /**
      * Constant for the default value of max batch size.
      */
     private static final int DEFAULT_MAX_BATCH_SIZE = 50;
@@ -115,6 +123,14 @@ public class MappIntelligenceConfig {
      * The number of resend attempts.
      */
     private int maxAttempt = 1;
+    /**
+     * Number for connection timeout.
+     */
+    private int connectionTimeout = DEFAULT_CONNECT_TIMEOUT;
+    /**
+     * Number read timeout.
+     */
+    private int readTimeout = DEFAULT_READ_TIMEOUT;
     /**
      * The interval of request resend in milliseconds.
      */
@@ -695,6 +711,32 @@ public class MappIntelligenceConfig {
     }
 
     /**
+     * @param cTimeout Number for connection timeout.
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setConnectionTimeout(int cTimeout) {
+        if (cTimeout >= 0) {
+            this.connectionTimeout = cTimeout;
+        }
+
+        return this;
+    }
+
+    /**
+     * @param rTimeout Number for read timeout.
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setReadTimeout(int rTimeout) {
+        if (rTimeout >= 0) {
+            this.readTimeout = rTimeout;
+        }
+
+        return this;
+    }
+
+    /**
      * @param aTimeout Specify the interval of request resend in milliseconds
      *
      * @return MappIntelligenceConfig
@@ -925,6 +967,8 @@ public class MappIntelligenceConfig {
         config.put("filePath", this.filePath);
         config.put("filePrefix", this.filePrefix);
         config.put("maxAttempt", this.maxAttempt);
+        config.put("connectionTimeout", this.connectionTimeout);
+        config.put("readTimeout", this.readTimeout);
         config.put("attemptTimeout", this.attemptTimeout);
         config.put("maxBatchSize", this.maxBatchSize);
         config.put("maxQueueSize", this.maxQueueSize);

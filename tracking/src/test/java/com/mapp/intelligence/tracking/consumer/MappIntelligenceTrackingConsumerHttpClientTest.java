@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
 
 public class MappIntelligenceTrackingConsumerHttpClientTest {
     private static List<String> contentMaxBatchSize = new ArrayList<>();
@@ -130,8 +129,25 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
 
         List<String> data = new ArrayList<>();
         data.add("wt?p=300,0");
-        assertTrue(consumer.sendBatch(data));
+        assertFalse(consumer.sendBatch(data));
         assertTrue(this.outContent.toString().contains("UnknownHostException"));
+    }
+
+    @Test
+    public void testBatchRequestConnectionTimedOut() {
+        Map<String, Object> config = new HashMap<>();
+        config.put("trackId", "123451234512345");
+        config.put("trackDomain", "www.google.com:81");
+        config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
+        config.put("connectionTimeout", 3 * 1000);
+        MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
+
+        List<String> data = new ArrayList<>();
+        data.add("wt?p=300,0");
+        assertFalse(consumer.sendBatch(data));
+        // java.net.SocketTimeoutException (connect timed out)
+        assertTrue(this.outContent.toString().contains("SocketTimeoutException"));
     }
 
     @Test

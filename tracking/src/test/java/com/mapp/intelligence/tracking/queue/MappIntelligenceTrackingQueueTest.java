@@ -88,12 +88,12 @@ public class MappIntelligenceTrackingQueueTest {
             queue.add((new MappIntelligenceParameterMap()).add("pn", i + "").build());
         }
 
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 10 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 11 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 12 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 13 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 14 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 15 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 10 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 11 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 12 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 13 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 14 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 15 req."));
 
         List<String> requests = MappIntelligenceUnitUtil.getQueue(queue);
         assertEquals(15, requests.size());
@@ -115,12 +115,12 @@ public class MappIntelligenceTrackingQueueTest {
             queue.add("wt?p=300," + i);
         }
 
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 10 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 11 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 12 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 13 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 14 req."));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 15 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 10 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 11 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 12 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 13 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 14 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 15 req."));
 
         List<String> requests = MappIntelligenceUnitUtil.getQueue(queue);
         assertEquals(15, requests.size());
@@ -658,7 +658,7 @@ public class MappIntelligenceTrackingQueueTest {
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
 
         assertTrue(queue.flush());
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 0 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 0 req."));
         assertTrue(this.outContent.toString().contains("MappIntelligenceQueue is empty"));
     }
 
@@ -672,7 +672,7 @@ public class MappIntelligenceTrackingQueueTest {
         queue.add("wt?p=300,0");
 
         assertFalse(queue.flush());
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 1 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 1 req."));
         assertTrue(this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (1 req.)"));
         assertTrue(this.outContent.toString().contains("Batch request responding the status code 404"));
         assertTrue(this.outContent.toString().contains("HTTP Status 404"));
@@ -691,10 +691,30 @@ public class MappIntelligenceTrackingQueueTest {
 
         Thread.currentThread().interrupt();
         assertFalse(queue.flush());
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 1 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 1 req."));
         assertTrue(this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (1 req.)"));
         assertTrue(this.outContent.toString().contains("Batch request responding the status code 404"));
         assertTrue(this.outContent.toString().contains("HTTP Status 404"));
+        assertTrue(this.outContent.toString().contains("Batch request failed!"));
+        assertTrue(this.outContent.toString().contains("Batch of 1 req. sent, current queue size is 1 req."));
+    }
+
+    @Test
+    public void testFlushHTTPQueueFailed3() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "www.google.com:81"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setMaxAttempt(3)
+            .setConnectionTimeout(3 * 1000)
+            .setReadTimeout(3 * 1000);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.add("wt?p=300,0");
+
+        assertFalse(queue.flush());
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 1 req."));
+        assertTrue(this.outContent.toString().contains("Send batch data to https://www.google.com:81/111111111111111/batch (1 req.)"));
+        assertTrue(this.outContent.toString().contains("SocketTimeoutException"));
         assertTrue(this.outContent.toString().contains("Batch request failed!"));
         assertTrue(this.outContent.toString().contains("Batch of 1 req. sent, current queue size is 1 req."));
     }
@@ -713,7 +733,7 @@ public class MappIntelligenceTrackingQueueTest {
         queue.add("wt?p=300,0");
 
         assertTrue(queue.flush());
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 5 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 5 req."));
         assertTrue(this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/123451234512345/batch (5 req.)"));
         assertTrue(this.outContent.toString().contains("Batch request responding the status code 200"));
         assertTrue(this.outContent.toString().contains("Batch of 5 req. sent, current queue size is 0 req."));
@@ -742,7 +762,7 @@ public class MappIntelligenceTrackingQueueTest {
         queue.flush();
         assertTrue(this.outContent.toString().contains("Create new file mapp_intelligence_test"));
         assertTrue(this.outContent.toString().contains("Add the following request to queue (1 req.)"));
-        assertTrue(this.outContent.toString().contains("Sent batch requests, current queue size is 1 req."));
+        assertTrue(this.outContent.toString().contains("Send batch requests, current queue size is 1 req."));
         assertTrue(this.outContent.toString().contains("Write batch data in mapp_intelligence_test"));
         assertTrue(this.outContent.toString().contains("Batch of 1 req. sent, current queue size is 0 req."));
         assertTrue(this.outContent.toString().contains("MappIntelligenceQueue is empty"));

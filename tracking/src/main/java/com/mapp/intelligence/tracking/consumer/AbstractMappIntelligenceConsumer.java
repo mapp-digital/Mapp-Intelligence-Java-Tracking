@@ -42,6 +42,14 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
      * Constant for the default value of max file size (24 MB).
      */
     protected static final int DEFAULT_MAX_FILE_SIZE = 24 * 1024 * 1024;
+    /**
+     * Constant for the default value of max connection timeout.
+     */
+    protected static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
+    /**
+     * Constant for the default value of max read timeout.
+     */
+    protected static final int DEFAULT_READ_TIMEOUT = 5 * 1000;
 
     /**
      * Mapp Intelligence debug logger.

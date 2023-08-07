@@ -2,9 +2,7 @@ package com.mapp.intelligence.tracking.consumer;
 
 import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -20,17 +18,20 @@ public class MappIntelligenceConsumerHttpClient extends AbstractMappIntelligence
     /**
      * Constant for default connection timeout.
      */
-    private static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
+    private int connectionTimeout;
     /**
      * Constant for default read timeout.
      */
-    private static final int DEFAULT_READ_TIMEOUT = 5 * 1000;
+    private int readTimeout;
 
     /**
      * @param config Mapp Intelligence configuration
      */
     public MappIntelligenceConsumerHttpClient(Map<String, Object> config) {
         super(config);
+
+        this.connectionTimeout = (int) config.getOrDefault("connectionTimeout", DEFAULT_CONNECT_TIMEOUT);
+        this.readTimeout = (int) config.getOrDefault("readTimeout", DEFAULT_READ_TIMEOUT);
     }
 
     /**
@@ -56,20 +57,21 @@ public class MappIntelligenceConsumerHttpClient extends AbstractMappIntelligence
         long currentBatchSize = batchContent.size();
         this.logger.debug(MappIntelligenceMessages.SEND_BATCH_DATA, urlString, currentBatchSize);
 
+        boolean batchSentStatus = true;
         try {
             URL url = new URL(urlString);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "text/plain; utf-8");
 
+            con.setConnectTimeout(this.connectionTimeout);
+            con.setReadTimeout(this.readTimeout);
+
             con.setDoOutput(true);
             try (OutputStream os = con.getOutputStream()) {
                 byte[] input = payload.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
-
-            con.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
-            con.setReadTimeout(DEFAULT_READ_TIMEOUT);
 
             con.connect();
 
@@ -78,16 +80,15 @@ public class MappIntelligenceConsumerHttpClient extends AbstractMappIntelligence
 
             if (httpStatus >= HttpURLConnection.HTTP_BAD_REQUEST) {
                 this.logger.warn(MappIntelligenceMessages.BATCH_RESPONSE_TEXT, httpStatus, "HTTP Status " + httpStatus);
-
-                con.disconnect();
-                return false;
+                batchSentStatus = false;
             }
 
             con.disconnect();
         } catch (IOException e) {
+            batchSentStatus = false;
             this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
         }
 
-        return true;
+        return batchSentStatus;
     }
 }
