@@ -5,7 +5,7 @@
     <groupId>com.mapp.intelligence.tracking</groupId>
     <artifactId>mapp-intelligence-java-tracking</artifactId>
     <packaging>pom</packaging>
-    <version>0.2.0</version>
+    <version>0.2.1-SNAPSHOT</version>
 
     <name>mapp-intelligence-java-tracking</name>
     <description>Server-side tracking is crucial for companies that must measure mission-critical information on their website, such as order information or other website goals. The Java library of Mapp Intelligence helps you to set up server-side tracking when using Mapp Intelligence as your analysis tool.</description>
