@@ -67,12 +67,57 @@ public class MappIntelligenceTrackingProductTest {
     }
 
     @Test
+    public void testSetStatusAddToCart() {
+        MappIntelligenceProduct product = new MappIntelligenceProduct();
+        product.setStatus(MappIntelligenceProduct.ADD_TO_CART);
+
+        Map<String, Object> data = product.getData();
+        assertEquals("add", data.get("status"));
+    }
+
+    @Test
+    public void testSetStatusDeleteFromCart() {
+        MappIntelligenceProduct product = new MappIntelligenceProduct();
+        product.setStatus(MappIntelligenceProduct.DELETE_FROM_CART);
+
+        Map<String, Object> data = product.getData();
+        assertEquals("del", data.get("status"));
+    }
+
+    @Test
+    public void testSetStatusCheckout() {
+        MappIntelligenceProduct product = new MappIntelligenceProduct();
+        product.setStatus(MappIntelligenceProduct.CHECKOUT);
+
+        Map<String, Object> data = product.getData();
+        assertEquals("checkout", data.get("status"));
+    }
+
+    @Test
     public void testSetStatusConfirmation() {
         MappIntelligenceProduct product = new MappIntelligenceProduct();
         product.setStatus(MappIntelligenceProduct.CONFIRMATION);
 
         Map<String, Object> data = product.getData();
         assertEquals("conf", data.get("status"));
+    }
+
+    @Test
+    public void testSetStatusAddToWishlist() {
+        MappIntelligenceProduct product = new MappIntelligenceProduct();
+        product.setStatus(MappIntelligenceProduct.ADD_TO_WISHLIST);
+
+        Map<String, Object> data = product.getData();
+        assertEquals("add-wl", data.get("status"));
+    }
+
+    @Test
+    public void testSetStatusDeleteFromWishlist() {
+        MappIntelligenceProduct product = new MappIntelligenceProduct();
+        product.setStatus(MappIntelligenceProduct.DELETE_FROM_WISHLIST);
+
+        Map<String, Object> data = product.getData();
+        assertEquals("del-wl", data.get("status"));
     }
 
     @Test

@@ -206,6 +206,37 @@ public class MappIntelligenceTrackingTest {
     }
 
     @Test
+    public void testSimpleProductData() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        Map<String, String> status = new HashMap<>();
+        status.put(MappIntelligenceProduct.VIEW, "view");
+        status.put(MappIntelligenceProduct.BASKET, "add");
+        status.put(MappIntelligenceProduct.DELETE_FROM_CART, "del");
+        status.put(MappIntelligenceProduct.CHECKOUT, "checkout");
+        status.put(MappIntelligenceProduct.CONFIRMATION, "conf");
+        status.put(MappIntelligenceProduct.ADD_TO_WISHLIST, "add-wl");
+        status.put(MappIntelligenceProduct.DELETE_FROM_WISHLIST, "del-wl");
+
+        for (Map.Entry<String, String> entry : status.entrySet()) {
+            assertTrue(mappIntelligenceTracking.track((new MappIntelligenceParameterMap())
+                .add(MappIntelligenceParameter.PRODUCT_ID, "065ee2b001")
+                .add(MappIntelligenceParameter.PRODUCT_COST, "59.99")
+                .add(MappIntelligenceParameter.PRODUCT_QUANTITY, "1")
+                .add(MappIntelligenceParameter.PRODUCT_STATUS, entry.getKey())
+            ));
+
+            List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+            String request = requests.get(requests.size() - 1);
+            assertTrue(request.matches(".*&ba=065ee2b001.*"));
+            assertTrue(request.matches(".*&co=59\\.99.*"));
+            assertTrue(request.matches(".*&qn=1.*"));
+            assertTrue(request.matches(".*&st=" + entry.getValue() + ".*"));
+        }
+    }
+
+    @Test
     public void testDataObject1() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
@@ -341,6 +372,59 @@ public class MappIntelligenceTrackingTest {
         String request = requests.get(0);
         assertTrue(request.matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.*"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
+    }
+
+    @Test
+    public void testObjectProductData() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        Map<String, String> status = new HashMap<>();
+        status.put(MappIntelligenceProduct.VIEW, "view");
+        status.put(MappIntelligenceProduct.BASKET, "add");
+        status.put(MappIntelligenceProduct.DELETE_FROM_CART, "del");
+        status.put(MappIntelligenceProduct.CHECKOUT, "checkout");
+        status.put(MappIntelligenceProduct.CONFIRMATION, "conf");
+        status.put(MappIntelligenceProduct.ADD_TO_WISHLIST, "add-wl");
+        status.put(MappIntelligenceProduct.DELETE_FROM_WISHLIST, "del-wl");
+
+        for (Map.Entry<String, String> entry : status.entrySet()) {
+            MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
+                .setCost(59.99)
+                .setQuantity(1)
+                .setStatus(entry.getKey());
+
+            assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+                .product((new MappIntelligenceProductCollection())
+                    .add(product1)
+                )
+            ));
+
+            List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+            String request = requests.get(requests.size() - 1);
+            assertTrue(request.matches(".*&ba=065ee2b001.*"));
+            assertTrue(request.matches(".*&co=59\\.99.*"));
+            assertTrue(request.matches(".*&qn=1.*"));
+            assertTrue(request.matches(".*&st=" + entry.getValue() + ".*"));
+        }
+
+        MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
+            .setCost(59.99)
+            .setQuantity(1)
+            .setStatus("list");
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+            .product((new MappIntelligenceProductCollection())
+                .add(product1)
+            )
+        ));
+
+        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        String request = requests.get(requests.size() - 1);
+        assertTrue(request.matches(".*&ba=065ee2b001.*"));
+        assertTrue(request.matches(".*&co=59\\.99.*"));
+        assertTrue(request.matches(".*&qn=1.*"));
+        assertTrue(request.matches(".*&st=view.*"));
     }
 
     @Test

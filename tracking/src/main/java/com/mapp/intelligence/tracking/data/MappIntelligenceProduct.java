@@ -20,13 +20,33 @@ public class MappIntelligenceProduct extends AbstractMappIntelligenceData {
      */
     public static final String VIEW = "view";
     /**
-     * Constant for add product to basket.
+     * Constant for add product to cart.
      */
     public static final String BASKET = "add";
+    /**
+     * Constant for add product to cart.
+     */
+    public static final String ADD_TO_CART = "add";
+    /**
+     * Constant for remove product from cart.
+     */
+    public static final String DELETE_FROM_CART = "del";
+    /**
+     * Constant for checkout process.
+     */
+    public static final String CHECKOUT = "checkout";
     /**
      * Constant for order confirmation.
      */
     public static final String CONFIRMATION = "conf";
+    /**
+     * Constant for add product to wishlist.
+     */
+    public static final String ADD_TO_WISHLIST = "add-wl";
+    /**
+     * Constant for remove product from wishlist.
+     */
+    public static final String DELETE_FROM_WISHLIST = "del-wl";
 
     /**
      * Saves products placed in the shopping cart. This property must be entered if products are to be measured.
@@ -43,7 +63,8 @@ public class MappIntelligenceProduct extends AbstractMappIntelligenceData {
      */
     private int quantity;
     /**
-     * Contains states of your product (VIEW, BASKET, CONFIRMATION).
+     * Contains states of your product (VIEW, BASKET, ADD_TO_CART, DELETE_FROM_CART, CHECKOUT,
+     * CONFIRMATION, ADD_TO_WISHLIST, DELETE_FROM_WISHLIST).
      */
     private String status = VIEW;
     /**
@@ -149,12 +170,20 @@ public class MappIntelligenceProduct extends AbstractMappIntelligenceData {
     }
 
     /**
-     * @param s Contains states of your product (VIEW, BASKET, CONFIRMATION)
+     * @param s Contains states of your product (VIEW, BASKET, ADD_TO_CART, DELETE_FROM_CART,
+     *          CHECKOUT, CONFIRMATION, ADD_TO_WISHLIST, DELETE_FROM_WISHLIST)
      *
      * @return MappIntelligenceProduct
      */
     public MappIntelligenceProduct setStatus(String s) {
-        if (s.equals(VIEW) || s.equals(BASKET) || s.equals(CONFIRMATION)) {
+        if (s.equals(VIEW)
+            || s.equals(BASKET)
+            || s.equals(DELETE_FROM_CART)
+            || s.equals(CHECKOUT)
+            || s.equals(CONFIRMATION)
+            || s.equals(ADD_TO_WISHLIST)
+            || s.equals(DELETE_FROM_WISHLIST))
+        {
             this.status = s;
         }
 
