@@ -9,8 +9,10 @@ import com.mapp.intelligence.tracking.util.URLString;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Deque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @SuppressWarnings("unchecked")
 public class MappIntelligenceUnitUtil {
@@ -44,8 +46,8 @@ public class MappIntelligenceUnitUtil {
      * @param instance Mapp Intelligence instance
      * @return List<String>
      */
-    public static List<String> getQueue(MappIntelligenceTracking instance) {
-        List<String> requests = new ArrayList<>();
+    public static Deque<String> getQueue(MappIntelligenceTracking instance) {
+        Deque<String> requests = new ConcurrentLinkedDeque<>();
 
         try {
             Field queueField = MappIntelligenceTracking.class.getSuperclass().getDeclaredField("queue");
@@ -67,8 +69,8 @@ public class MappIntelligenceUnitUtil {
      * @param instance Mapp Intelligence instance
      * @return List<String>
      */
-    public static List<String> getQueue(MappIntelligenceHybrid instance) {
-        List<String> requests = new ArrayList<>();
+    public static Queue<String> getQueue(MappIntelligenceHybrid instance) {
+        Queue<String> requests = new ConcurrentLinkedQueue<>();
 
         try {
             Field queueField = MappIntelligenceTracking.class.getSuperclass().getDeclaredField("queue");
@@ -90,14 +92,14 @@ public class MappIntelligenceUnitUtil {
      * @param queue Mapp Intelligence queue
      * @return List<String>
      */
-    public static List<String> getQueue(MappIntelligenceQueue queue) {
-        List<String> requests = new ArrayList<>();
+    public static Deque<String> getQueue(MappIntelligenceQueue queue) {
+        Deque<String> requests = new ConcurrentLinkedDeque<>();
 
         try {
             Field queueField = MappIntelligenceQueue.class.getDeclaredField("queue");
             queueField.setAccessible(true);
 
-            requests = (List<String>) queueField.get(queue);
+            requests = (Deque<String>) queueField.get(queue);
 
             queueField.setAccessible(false);
         } catch (NoSuchFieldException | IllegalAccessException e) {

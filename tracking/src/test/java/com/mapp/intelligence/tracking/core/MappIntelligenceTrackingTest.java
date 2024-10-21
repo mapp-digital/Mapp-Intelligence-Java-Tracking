@@ -16,9 +16,7 @@ import com.mapp.intelligence.tracking.data.MappIntelligenceSession;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -73,10 +71,10 @@ public class MappIntelligenceTrackingTest {
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.track(new MappIntelligenceParameterMap()));
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.+"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
@@ -87,10 +85,10 @@ public class MappIntelligenceTrackingTest {
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.track());
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.+"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
@@ -127,7 +125,7 @@ public class MappIntelligenceTrackingTest {
 
         assertFalse(mappIntelligenceTracking.track((MappIntelligenceParameterMap) null));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(0, requests.size());
     }
 
@@ -139,7 +137,7 @@ public class MappIntelligenceTrackingTest {
 
         assertFalse(mappIntelligenceTracking.track((MappIntelligenceParameterMap) null));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(0, requests.size());
     }
 
@@ -152,10 +150,10 @@ public class MappIntelligenceTrackingTest {
             .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.+"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
@@ -183,10 +181,10 @@ public class MappIntelligenceTrackingTest {
             .add(MappIntelligenceParameter.PRODUCT_STATUS, "conf")
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
         assertTrue(request.matches(".*&cg1=page\\.test.*"));
         assertTrue(request.matches(".*&cg2=en.*"));
@@ -227,8 +225,8 @@ public class MappIntelligenceTrackingTest {
                 .add(MappIntelligenceParameter.PRODUCT_STATUS, entry.getKey())
             ));
 
-            List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
-            String request = requests.get(requests.size() - 1);
+            Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+            String request = requests.getLast();
             assertTrue(request.matches(".*&ba=065ee2b001.*"));
             assertTrue(request.matches(".*&co=59\\.99.*"));
             assertTrue(request.matches(".*&qn=1.*"));
@@ -243,7 +241,7 @@ public class MappIntelligenceTrackingTest {
 
         assertFalse(mappIntelligenceTracking.track((MappIntelligenceDataMap) null));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(0, requests.size());
     }
 
@@ -255,7 +253,7 @@ public class MappIntelligenceTrackingTest {
 
         assertFalse(mappIntelligenceTracking.track((MappIntelligenceDataMap) null));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(0, requests.size());
     }
 
@@ -268,10 +266,10 @@ public class MappIntelligenceTrackingTest {
                 .page(new MappIntelligencePage("en.page.test"))
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.+"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
@@ -328,10 +326,10 @@ public class MappIntelligenceTrackingTest {
                 )
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
         assertTrue(request.matches(".*&ceid=foo.*"));
         assertTrue(request.matches(".*&cg1=page\\.test.*"));
@@ -366,10 +364,10 @@ public class MappIntelligenceTrackingTest {
             .product(null)
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,0,,,,,[0-9]{13},0,,&.*"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
@@ -400,8 +398,8 @@ public class MappIntelligenceTrackingTest {
                 )
             ));
 
-            List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
-            String request = requests.get(requests.size() - 1);
+            Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+            String request = requests.getLast();
             assertTrue(request.matches(".*&ba=065ee2b001.*"));
             assertTrue(request.matches(".*&co=59\\.99.*"));
             assertTrue(request.matches(".*&qn=1.*"));
@@ -419,8 +417,8 @@ public class MappIntelligenceTrackingTest {
             )
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
-        String request = requests.get(requests.size() - 1);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        String request = requests.getLast();
         assertTrue(request.matches(".*&ba=065ee2b001.*"));
         assertTrue(request.matches(".*&co=59\\.99.*"));
         assertTrue(request.matches(".*&qn=1.*"));
@@ -479,10 +477,10 @@ public class MappIntelligenceTrackingTest {
             )
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
         assertFalse(request.matches(".*&fpv=.*"));
         assertFalse(request.matches(".*&fpt=.*"));
@@ -541,10 +539,10 @@ public class MappIntelligenceTrackingTest {
             )
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(1, requests.size());
 
-        String request = requests.get(0);
+        String request = requests.peek();
         assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
         assertTrue(request.matches(".*&fpv=abc123def456.*"));
         assertTrue(request.matches(".*&fpt=2\\.0\\.0.*"));
@@ -789,7 +787,7 @@ public class MappIntelligenceTrackingTest {
             .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
         ));
 
-        List<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
         assertEquals(0, requests.size());
     }
 }
