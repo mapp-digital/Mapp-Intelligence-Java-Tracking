@@ -31,3 +31,4 @@ hsperfdata_root/*
 java-version.txt
 **/release-pom.xml
 reports/*
+dist
