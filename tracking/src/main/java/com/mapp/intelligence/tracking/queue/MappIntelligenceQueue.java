@@ -8,10 +8,8 @@ import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerHttpClien
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerType;
 import com.mapp.intelligence.tracking.util.URLString;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * @author Mapp Digital c/o Webtrekk GmbH
@@ -33,7 +31,7 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
     /**
      * Mapp Intelligence request queue.
      */
-    private List<String> queue = new ArrayList<>();
+    private final ConcurrentLinkedDeque<String> queue = new ConcurrentLinkedDeque<>();
     /**
      * Mapp Intelligence consumer.
      */
@@ -82,26 +80,33 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
         this.logger.debug(String.format(MappIntelligenceMessages.SENT_BATCH_REQUESTS, currentQueueSize));
 
         while (currentQueueSize > 0 && wasRequestSuccessful) {
+            LinkedList<String> batchContent = new LinkedList<>();
+
             int batchSize = Integer.min(this.maxBatchSize, currentQueueSize);
-            List<String> batchContent = this.queue.subList(0, batchSize);
-            this.queue = this.queue.subList(batchSize, currentQueueSize);
+            for (int i = 0; i < batchSize; i++) {
+                String request = queue.poll();
+                if (request != null) {
+                    batchContent.add(request);
+                }
+                currentQueueSize--;
+            }
+
             wasRequestSuccessful = this.sendBatch(batchContent);
 
             if (!wasRequestSuccessful) {
                 this.logger.warn(MappIntelligenceMessages.BATCH_REQUEST_FAILED);
-
-                batchContent.addAll(this.queue);
-                this.queue = batchContent;
+                for (Iterator<String> iter = batchContent.descendingIterator(); iter.hasNext(); ){
+                    queue.addFirst(iter.next());
+                }
             }
 
-            currentQueueSize = this.queue.size();
             this.logger.debug(String.format(
                 MappIntelligenceMessages.CURRENT_QUEUE_STATUS,
                 batchSize,
-                currentQueueSize
+                this.queue.size()
             ));
-        }
 
+        }
         if (currentQueueSize == 0) {
             this.logger.debug(MappIntelligenceMessages.QUEUE_IS_EMPTY);
         }
@@ -135,7 +140,7 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
     /**
      * @return List(String)
      */
-    public List<String> getQueue() {
+    public Deque<String> getQueue() {
         return this.queue;
     }
 
