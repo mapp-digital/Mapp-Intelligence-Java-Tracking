@@ -258,8 +258,8 @@
     </profiles>
 
     <scm>
-        <connection>${connectionUrl}</connection>
-        <developerConnection>${developerConnectionUrl}</developerConnection>
+        <connection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
+        <developerConnection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
         <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</url>
         <tag>v0.2.0</tag>
     </scm>
