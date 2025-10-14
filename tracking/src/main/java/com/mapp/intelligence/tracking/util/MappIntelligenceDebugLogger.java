@@ -12,8 +12,8 @@ import java.util.Date;
  * @version 0.0.1
  */
 public final class MappIntelligenceDebugLogger implements MappIntelligenceLogger {
-    private final static String DATE_FORMAT = "dd-MMMM-yyyy hh:mm:ss.SSS";
-    private final static String MESSAGE_FORMAT = "%s %s [%s]: ";
+    private static final String DATE_FORMAT = "dd-MMMM-yyyy hh:mm:ss.SSS";
+    private static final String MESSAGE_FORMAT = "%s %s [%s]: ";
 
     /**
      * Mapp Intelligence logger.

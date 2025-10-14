@@ -63,6 +63,7 @@ public abstract class AbstractMappIntelligenceData {
             queryParameters.values().removeIf("false"::equals);
             queryParameters.values().removeIf("0"::equals);
             queryParameters.values().removeIf("0.0"::equals);
+            queryParameters.values().removeIf("{}"::equals);
         }
 
         return queryParameters;

@@ -67,4 +67,30 @@ public class MappIntelligenceUnitUtil {
             // do nothing
         }
     }
+
+    /**
+     * @return MappIntelligenceLogger
+     */
+    public static MappIntelligenceLogger getCustomLogger() {
+        class CustomLogger implements MappIntelligenceLogger {
+            /**
+             * @param msg Debug message
+             */
+            @Override
+            public void log(String msg) {
+                System.out.println(msg);
+            }
+
+            /**
+             * @param format String format
+             * @param args   Arguments
+             */
+            @Override
+            public void log(String format, Object... args) {
+                System.out.printf((format) + "%n", args);
+            }
+        }
+
+        return new CustomLogger();
+    }
 }

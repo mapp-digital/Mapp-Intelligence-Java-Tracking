@@ -10,10 +10,7 @@ import com.mapp.intelligence.tracking.data.MappIntelligenceParameterMap;
 import com.mapp.intelligence.tracking.data.MappIntelligenceProduct;
 import com.mapp.intelligence.tracking.data.MappIntelligenceProductCollection;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Mapp Digital c/o Webtrekk GmbH
@@ -34,9 +31,7 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
      */
     private String[] simulateEmptyValues(Integer maxLength) {
         String[] emptyArray = new String[maxLength];
-        for (int i = 0; i < maxLength; i++) {
-            emptyArray[i] = "";
-        }
+        Arrays.fill(emptyArray, "");
 
         return emptyArray;
     }
@@ -117,15 +112,18 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
     /**
      * @param requestData Tracking request data
      *
-     * @return boolean
+     * @return Queue ID
      */
-    private boolean addToRequestQueue(Map<String, String> requestData) {
+    private int addToRequestQueue(Map<String, String> requestData) {
         requestData.put(MappIntelligenceParameter.PIXEL_FEATURES, this.statistics.toString());
         requestData.put(MappIntelligenceParameter.VERSION, MappIntelligence.VERSION);
         requestData.put(MappIntelligenceParameter.TRACKING_PLATFORM, TRACKING_PLATFORM);
 
-        this.queue.add(requestData);
-        return true;
+        if (this.activateAdvancedPermission) {
+            requestData.put(MappIntelligenceParameter.ADVANCED_PERMISSION_CATEGORY, this.advancedPermissionCategory + "");
+        }
+
+        return this.queue.add(requestData);
     }
 
     /**
@@ -147,10 +145,8 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
                     products.add(mappIntelligenceProduct.getQueryParameter());
                 }
                 requestData.putAll(this.mergeProducts(products));
-            } else {
-                if (value != null) {
-                    requestData.putAll(((AbstractMappIntelligenceData) value).getQueryParameter());
-                }
+            } else if (value != null) {
+                requestData.putAll(((AbstractMappIntelligenceData) value).getQueryParameter());
             }
         }
 
@@ -158,42 +154,35 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
     }
 
     /**
-     * @return boolean
+     * @return Queue ID
      */
-    public boolean track() {
+    public int track() {
         return this.track(new MappIntelligenceParameterMap());
     }
 
     /**
      * @param data Mapp Intelligence parameter map
      *
-     * @return boolean
+     * @return Queue ID
      */
-    public boolean track(MappIntelligenceParameterMap data) {
+    public int track(MappIntelligenceParameterMap data) {
         if (this.isTrackable() && data != null) {
             return this.addToRequestQueue(data.build());
         }
 
-        return false;
+        return -1;
     }
 
     /**
      * @param data Mapp Intelligence data map
      *
-     * @return boolean
+     * @return Queue ID
      */
-    public boolean track(MappIntelligenceDataMap data) {
+    public int track(MappIntelligenceDataMap data) {
         if (this.isTrackable() && data != null) {
             return this.addToRequestQueue(this.getRequestData(data.build()));
         }
 
-        return false;
-    }
-
-    /**
-     * @return boolean
-     */
-    public boolean flush() {
-        return this.queue.flush();
+        return -1;
     }
 }

@@ -54,10 +54,10 @@ public class MappIntelligenceTrackingSessionTest {
     public void testGetQueryParameter() {
         MappIntelligenceSession session = new MappIntelligenceSession();
         session
-            .setLoginStatus("logged in")
-            .setTemporarySessionId("abc123")
-            .setParameter(2, "param2")
-            .setParameter(15, "param15");
+                .setLoginStatus("logged in")
+                .setTemporarySessionId("abc123")
+                .setParameter(2, "param2")
+                .setParameter(15, "param15");
 
         Map<String, String> data = session.getQueryParameter();
         assertEquals("logged in", data.get("cs800"));

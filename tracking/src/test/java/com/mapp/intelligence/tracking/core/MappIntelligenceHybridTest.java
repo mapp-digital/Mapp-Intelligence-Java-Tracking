@@ -10,6 +10,8 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -18,7 +20,6 @@ import static org.junit.Assert.assertNull;
 public class MappIntelligenceHybridTest {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
-    // ToDo
     private final String tempFilePath = System.getProperty("java.io.tmpdir") + "/";
     private final String tempFilePrefix = "MappIntelligenceRequests";
 
@@ -39,53 +40,65 @@ public class MappIntelligenceHybridTest {
     public void testDeactivateTacking() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
             .setDeactivate(true);
+        mic.setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         mappIntelligence.track();
-        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence).size());
+        mappIntelligence.flush();
+        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence, 0).size());
     }
 
     @Test
     public void testTrackWithoutRequestURL() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig();
-
+        mic.setRequestQueues(0);
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         mappIntelligence.track();
-        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence).size());
+        mappIntelligence.flush();
+        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence, 0).size());
     }
 
     @Test
     public void testTrackWithEmptyQueryParameter1() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
             .setRequestURL("https://sub.domain.tld/pix");
+        mic.setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         mappIntelligence.track();
-        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence).size());
+        mappIntelligence.flush();
+        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence, 0).size());
     }
 
     @Test
     public void testTrackWithEmptyQueryParameter2() {
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
             .setRequestURL("https://sub.domain.tld/pix?");
+        mic.setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         mappIntelligence.track();
-        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence).size());
+        mappIntelligence.flush();
+        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence, 0).size());
     }
 
     @Test
-    public void testTrackWithQueryParameter() {
+    public void testTrackWithQueryParameter() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203");
+            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203")
+            .setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
-
+        mappIntelligence.setOnFlushComplete((success, queueId) -> latch.countDown());
         mappIntelligence.track();
+        mappIntelligence.flush();
+        assertTrue(latch.await(2000, TimeUnit.MILLISECONDS));
         assertTrue(
             MappIntelligenceUnitUtil
                 .getFileContent(this.tempFilePath, this.tempFilePrefix, ".tmp")
@@ -94,13 +107,18 @@ public class MappIntelligenceHybridTest {
     }
 
     @Test
-    public void testTrackWithQueryParameterAndHash() {
+    public void testTrackWithQueryParameterAndHash() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc");
+            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc")
+            .setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
-
+        mappIntelligence.setOnFlushComplete((success, queueId) -> latch.countDown());
         mappIntelligence.track();
+        mappIntelligence.flush();
+        assertTrue(latch.await(2000, TimeUnit.MILLISECONDS));
         assertTrue(
             MappIntelligenceUnitUtil
                 .getFileContent(this.tempFilePath, this.tempFilePrefix, ".tmp")
@@ -109,11 +127,16 @@ public class MappIntelligenceHybridTest {
     }
 
     @Test
-    public void testTrackWithRequestURL() {
+    public void testTrackWithRequestURL() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
         MappIntelligenceConfig mic = new MappIntelligenceConfig();
+        mic.setRequestQueues(0);
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
-
+        mappIntelligence.setOnFlushComplete((success, queueId) -> latch.countDown());
         mappIntelligence.track("https://sub.domain.tld/pix?foo=bar&test=1%202%203");
+        mappIntelligence.flush();
+        assertTrue(latch.await(2000, TimeUnit.MILLISECONDS));
         assertTrue(
             MappIntelligenceUnitUtil
                 .getFileContent(this.tempFilePath, this.tempFilePrefix, ".tmp")
@@ -124,10 +147,12 @@ public class MappIntelligenceHybridTest {
     @Test
     public void testTrackWithNullRequestURL() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig();
+        mic.setRequestQueues(0);
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         mappIntelligence.track(null);
-        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence).size());
+        mappIntelligence.flush();
+        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence, 0).size());
     }
 
     @Test
@@ -152,7 +177,7 @@ public class MappIntelligenceHybridTest {
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         assertNull(mappIntelligence.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
-        assertTrue(this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to get user cookie"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to get user cookie"));
     }
 
     @Test
@@ -164,7 +189,7 @@ public class MappIntelligenceHybridTest {
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         assertNull(mappIntelligence.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
-        assertTrue(this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to get user cookie"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to get user cookie"));
     }
 
     @Test
@@ -176,7 +201,7 @@ public class MappIntelligenceHybridTest {
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
 
         assertNull(mappIntelligence.getUserIdCookie(MappIntelligence.SMART, MappIntelligence.CLIENT_SIDE_COOKIE));
-        assertTrue(this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to get user cookie"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to get user cookie"));
     }
 
     @Test
@@ -316,7 +341,7 @@ public class MappIntelligenceHybridTest {
     }
 
     @Test
-    public void testCustomConsumer() {
+    public void testCustomConsumer() throws InterruptedException {
         class TestCustomPrintConsumer implements MappIntelligenceConsumer {
             public boolean sendBatch(List<String> batchContent) {
                 for (String request : batchContent) {
@@ -327,14 +352,52 @@ public class MappIntelligenceHybridTest {
             }
         }
 
+        CountDownLatch latch = new CountDownLatch(1);
+
         MappIntelligenceConfig mic = (new MappIntelligenceConfig("123451234512345", "analytics01.wt-eu02.net"))
             .setConsumerType(MappIntelligenceConsumerType.CUSTOM)
             .setConsumer(new TestCustomPrintConsumer())
             .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc");
+            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc")
+            .setRequestQueues(0);
+
         MappIntelligenceHybrid mappIntelligenceTracking = new MappIntelligenceHybrid(mic);
+        mappIntelligenceTracking.setOnFlushComplete((success, queueId) -> latch.countDown());
 
         mappIntelligenceTracking.track();
-        assertTrue(this.outContent.toString().contains("wt?foo=bar&test=1%202%203"));
+        mappIntelligenceTracking.flush();
+        assertTrue(latch.await(2000, TimeUnit.MILLISECONDS));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("wt?foo=bar&test=1%202%203"));
+    }
+
+    @Test
+    public void testCustomConsumerWithRequestInterval() throws InterruptedException {
+        class TestCustomPrintConsumer implements MappIntelligenceConsumer {
+            public boolean sendBatch(List<String> batchContent) {
+                for (String request : batchContent) {
+                    System.out.println(request);
+                }
+
+                return true;
+            }
+        }
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        MappIntelligenceConfig mic = (new MappIntelligenceConfig("123451234512345", "analytics01.wt-eu02.net"))
+            .setConsumerType(MappIntelligenceConsumerType.CUSTOM)
+            .setConsumer(new TestCustomPrintConsumer())
+            .setRequestInterval(1)
+            .setRequestQueues(0)
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc");
+
+        MappIntelligenceHybrid mappIntelligenceTracking = new MappIntelligenceHybrid(mic);
+        mappIntelligenceTracking.setOnFlushComplete((success, queueId) -> latch.countDown());
+
+        mappIntelligenceTracking.track();
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("wt?foo=bar&test=1%202%203"));
     }
 }

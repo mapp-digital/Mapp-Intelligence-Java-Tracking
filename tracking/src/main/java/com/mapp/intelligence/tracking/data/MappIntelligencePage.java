@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Page requests are used to send page-related data to Mapp Intelligence; such as the page name, parameters,
  * or categories, among others.
- *
+ * <p>
  * Below you can find all available methods for page requests.
  *
  * @author Mapp Digital c/o Webtrekk GmbH

@@ -1,6 +1,5 @@
 package com.mapp.intelligence.tracking.consumer;
 
-import com.mapp.intelligence.tracking.MappIntelligenceLogLevel;
 import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 
 import java.io.BufferedReader;
@@ -145,8 +144,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
 
         try {
             try (BufferedReader reader = new BufferedReader(new FileReader(this.file.getAbsolutePath()))) {
-                String line = null;
-                while ((line = reader.readLine()) != null) {
+                while ((reader.readLine()) != null) {
                     lines++;
                 }
             }
@@ -181,7 +179,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
         FilenameFilter filter = (f1, name) -> name.startsWith(this.filePrefix) && name.endsWith(TEMPORARY_FILE_EXTENSION);
         File[] files = f.listFiles(filter);
 
-        if (files == null || files.length <= 0) {
+        if (files == null || files.length == 0) {
             this.createNewTempFile();
         } else {
             this.file = files[0];
@@ -235,6 +233,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
 
     /**
      * @param batchContent List of tracking requests
+     *
      * @return boolean
      */
     @Override
@@ -248,7 +247,7 @@ public class MappIntelligenceConsumerFile extends AbstractMappIntelligenceConsum
             return false;
         }
 
-        payload += System.getProperty("line.separator");
+        payload += System.lineSeparator();
 
         int bcs = batchContent.size();
         if (this.isFileLimitReached(bcs)) {

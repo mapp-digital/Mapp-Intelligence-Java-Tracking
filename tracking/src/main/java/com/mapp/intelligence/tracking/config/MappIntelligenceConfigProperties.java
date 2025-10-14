@@ -26,8 +26,8 @@ class MappIntelligenceConfigProperties {
      */
     MappIntelligenceConfigProperties(String propertyFile) {
         this.prop = new Properties();
-        try {
-            InputStream inputStream = new FileInputStream(propertyFile);
+
+        try (InputStream inputStream = new FileInputStream(propertyFile)) {
             if (propertyFile.endsWith(".xml")) {
                 this.prop.loadFromXML(inputStream);
             } else {

@@ -11,7 +11,7 @@ public class MappIntelligenceDataMap {
     /**
      * Tracking data.
      */
-    private Map<String, Object> data = new HashMap<>();
+    private final Map<String, Object> data = new HashMap<>();
 
     /**
      * @param value Mapp Intelligence action data
@@ -73,6 +73,24 @@ public class MappIntelligenceDataMap {
      */
     public MappIntelligenceDataMap session(MappIntelligenceSession value) {
         data.put("session", value);
+        return this;
+    }
+
+    /**
+     * @param value Mapp Intelligence registration data
+     * @return MappIntelligenceDataMap
+     */
+    public MappIntelligenceDataMap registration(MappIntelligenceRegistration value) {
+        data.put("registration", value);
+        return this;
+    }
+
+    /**
+     * @param value Mapp Intelligence engage data
+     * @return MappIntelligenceDataMap
+     */
+    public MappIntelligenceDataMap engage(MappIntelligenceEngage value) {
+        data.put("engage", value);
         return this;
     }
 

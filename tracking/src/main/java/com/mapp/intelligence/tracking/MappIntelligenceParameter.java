@@ -37,6 +37,10 @@ public class MappIntelligenceParameter {
     public static final String PRODUCT_QUANTITY = "qn";
     public static final String PRODUCT_STATUS = "st";
     public static final String PIXEL_FEATURES = "pf";
+    public static final String ENGAGE_ATTRIBUTES = "eaj";
+    public static final String ENGAGE_EVENT_NAME = "ecwen";
+    public static final String ENGAGE_EVENT_ID = "ecwei";
+    public static final String ADVANCED_PERMISSION_CATEGORY = "pec";
 
     // predefined custom parameter and category
     // predefined urm category
@@ -80,6 +84,14 @@ public class MappIntelligenceParameter {
     public static final String LOGIN_STATUS = MappIntelligenceCustomParameter.CUSTOM_SESSION_PARAMETER.with(800);
     public static final String VERSION = MappIntelligenceCustomParameter.CUSTOM_SESSION_PARAMETER.with(801);
     public static final String TRACKING_PLATFORM = MappIntelligenceCustomParameter.CUSTOM_SESSION_PARAMETER.with(802);
+    // predefined registration parameter
+    public static final String REGISTRATION_EMAIL = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(1);
+    public static final String REGISTRATION_GROUP_ID = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(2);
+    public static final String REGISTRATION_MODE = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(3);
+    public static final String REGISTRATION_FIRST_NAME = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(4);
+    public static final String REGISTRATION_LAST_NAME = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(5);
+    public static final String REGISTRATION_GENDER = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(6);
+    public static final String REGISTRATION_TITLE = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(7);
 
     // custom parameter and category
     public static final String CUSTOM_SESSION_PARAMETER = "cs";
@@ -87,6 +99,7 @@ public class MappIntelligenceParameter {
     public static final String CUSTOM_PRODUCT_PARAMETER = "cb";
     public static final String CUSTOM_ACTION_PARAMETER = "ck";
     public static final String CUSTOM_CAMPAIGN_PARAMETER = "cc";
+    public static final String CUSTOM_REGISTRATION_PARAMETER = "er";
     public static final String CUSTOM_PAGE_CATEGORY = "cg";
     public static final String CUSTOM_PRODUCT_CATEGORY = "ca";
     public static final String CUSTOM_URM_CATEGORY = "uc";

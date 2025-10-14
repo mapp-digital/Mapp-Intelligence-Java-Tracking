@@ -67,6 +67,14 @@ public class MappIntelligenceConfig {
      */
     private static final int DEFAULT_MAX_FILE_SIZE = 24 * 1024 * 1024;
     /**
+     * Constant for the default value of request interval.
+     */
+    private static final int DEFAULT_REQUEST_INTERVAL = 0;
+    /**
+     * Constant for the default value of request queues.
+     */
+    private static final int DEFAULT_REQUEST_QUEUES = 2;
+    /**
      * Constant for max attempt.
      */
     private static final int MAX_ATTEMPT = 5;
@@ -156,6 +164,14 @@ public class MappIntelligenceConfig {
      */
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     /**
+     * The interval of the request that triggers the flush.
+     */
+    private int requestInterval = DEFAULT_REQUEST_INTERVAL;
+    /**
+     * The number of request queues.
+     */
+    private int requestQueues = DEFAULT_REQUEST_QUEUES;
+    /**
      * Sends every request via SSL.
      */
     private boolean forceSSL = true;
@@ -206,7 +222,7 @@ public class MappIntelligenceConfig {
     /**
      * Map with cookies.
      */
-    private Map<String, String> cookie = new HashMap<>();
+    private final Map<String, String> cookie = new HashMap<>();
     /**
      * If the string is contained in the request URL, the request is measured.
      */
@@ -223,6 +239,17 @@ public class MappIntelligenceConfig {
      * If the regular expression matches the request URL, the request isn't measured.
      */
     private List<String> matchesExclude = new ArrayList<>();
+    /**
+     * Enable if you need to differentiate between additional usage options for the tracked data, e.g.,
+     * only to your Intelligence instance or to both Intelligence and Engage.
+     */
+    private boolean activateAdvancedPermission = false;
+    /**
+     * If activateAdvancedPermission is activated
+     *     - 0 (default): only Intelligence
+     *     - 3: Intelligence and Engage
+     */
+    private int advancedPermissionCategory = 0;
 
     /**
      * Default constructor.
@@ -364,7 +391,7 @@ public class MappIntelligenceConfig {
     private int getStatistics() {
         int statistics = 0;
 
-        if (this.useParamsForDefaultPageName.size() > 0) {
+        if (!this.useParamsForDefaultPageName.isEmpty()) {
             statistics += 1;
         }
 
@@ -809,6 +836,32 @@ public class MappIntelligenceConfig {
     }
 
     /**
+     * @param rQueues Specify the number of request interval.
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setRequestQueues(int rQueues) {
+        if (rQueues >= 0) {
+            this.requestQueues = rQueues;
+        }
+
+        return this;
+    }
+
+    /**
+     * @param rInterval Specify the number of request queues.
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setRequestInterval(int rInterval) {
+        if (rInterval >= 0) {
+            this.requestInterval = rInterval;
+        }
+
+        return this;
+    }
+
+    /**
      * @param fSSL Sends every request via SSL
      *
      * @return MappIntelligenceConfig
@@ -929,6 +982,29 @@ public class MappIntelligenceConfig {
     }
 
     /**
+     * @param ap Enable if you need to differentiate between additional usage options for the tracked
+     *           data, e.g., only to your Intelligence instance or to both Intelligence and Engage.
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setActivateAdvancedPermission(boolean ap) {
+        this.activateAdvancedPermission = ap;
+        return this;
+    }
+
+    /**
+     * @param pc If activateAdvancedPermission is activated
+     *            - 0 (default): only Intelligence
+     *            - 3: Intelligence and Engage
+     *
+     * @return MappIntelligenceConfig
+     */
+    public MappIntelligenceConfig setAdvancedPermissionCategory(int pc) {
+        this.advancedPermissionCategory = pc;
+        return this;
+    }
+
+    /**
      * @return Map(String, Object)
      */
     public Map<String, Object> build() {
@@ -975,6 +1051,8 @@ public class MappIntelligenceConfig {
         config.put("maxFileLines", this.maxFileLines);
         config.put("maxFileDuration", this.maxFileDuration);
         config.put("maxFileSize", this.maxFileSize);
+        config.put("requestInterval", this.requestInterval);
+        config.put("requestQueues", this.requestQueues);
         config.put("forceSSL", this.forceSSL);
         config.put("useParamsForDefaultPageName", this.useParamsForDefaultPageName);
         config.put("userAgent", this.userAgent);
@@ -992,6 +1070,8 @@ public class MappIntelligenceConfig {
         config.put("containsExclude", this.containsExclude);
         config.put("matchesInclude", this.matchesInclude);
         config.put("matchesExclude", this.matchesExclude);
+        config.put("activateAdvancedPermission", this.activateAdvancedPermission);
+        config.put("advancedPermissionCategory", this.advancedPermissionCategory);
         config.put("statistics", statistics);
 
         return config;

@@ -46,6 +46,7 @@ else
     useradd -u "${USER_ID}" -g "${GROUP_ID}" "${USER_NAME}" || true
 fi
 usermod -aG "${GROUP_NAME}" "${USER_NAME}" || true
+chown -R ${USER_NAME}:${GROUP_NAME} $HOME || true
 
 # goto /app directory
 cd /app || exit 1
@@ -71,13 +72,23 @@ if [ "${BUILD_TYPE}" = "test" ]; then
     echo "test java lib"
 
     if [ "${APT_GET}" = "file" ]; then
-        echo "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report"
-        su -c "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report" -m "${USER_NAME}"
+        echo "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura"
+        su -c "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura" -m "${USER_NAME}"
     else
-        sudo -su ${USER_NAME} mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report
+        sudo -su ${USER_NAME} mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura
     fi
 
-    exit $?
+    TEST_STATUS=$?
+
+    if [ "${APT_GET}" = "file" ]; then
+        su -c "sed -i 's#filename=\"#filename=\"source/tracking/src/main/java/#g' tracking/target/site/cobertura/coverage.xml" -m "${USER_NAME}"
+        su -c "sed -i 's#filename=\"#filename=\"source/cronjob/src/main/java/#g' cronjob/target/site/cobertura/coverage.xml" -m "${USER_NAME}"
+    else
+        sudo -su ${USER_NAME} sed -i 's#filename="#filename="source/tracking/src/main/java/#g' tracking/target/site/cobertura/coverage.xml
+        sudo -su ${USER_NAME} sed -i 's#filename="#filename="source/cronjob/src/main/java/#g' cronjob/target/site/cobertura/coverage.xml
+    fi
+
+    exit $TEST_STATUS
 fi
 
 echo "install maven dependency"

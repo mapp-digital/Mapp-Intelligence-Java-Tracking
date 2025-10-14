@@ -4,14 +4,20 @@ import com.mapp.intelligence.tracking.config.MappIntelligenceConfig;
 import com.mapp.intelligence.tracking.core.MappIntelligenceHybrid;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.io.*;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MappIntelligenceCronjobTest {
     private static final String FILE_PATH = System.getProperty("user.dir") + "/src/test/resources/";
     private static final String FILE_PREFIX = "MappIntelligenceRequests";
@@ -296,6 +302,7 @@ public class MappIntelligenceCronjobTest {
     public void testRunDeactivated() {
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig(CONFIG_FILE);
         mappIntelligenceConfig.setDeactivate(true);
+        mappIntelligenceConfig.setRequestQueues(0);
 
         try {
             MappIntelligenceCronjob cron = new MappIntelligenceCronjob(mappIntelligenceConfig);
@@ -316,6 +323,7 @@ public class MappIntelligenceCronjobTest {
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig(CONFIG_FILE);
         mappIntelligenceConfig.setFilePath(FILE_PATH);
         mappIntelligenceConfig.setFilePrefix(FILE_PREFIX);
+        mappIntelligenceConfig.setRequestQueues(0);
 
         try {
             MappIntelligenceCronjob cron = new MappIntelligenceCronjob(mappIntelligenceConfig);
@@ -336,6 +344,7 @@ public class MappIntelligenceCronjobTest {
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig(CONFIG_FILE);
         mappIntelligenceConfig.setFilePath(FILE_PATH);
         mappIntelligenceConfig.setFilePrefix(FILE_PREFIX);
+        mappIntelligenceConfig.setRequestQueues(0);
 
         try {
             MappIntelligenceCronjob cron = new MappIntelligenceCronjob(mappIntelligenceConfig);
@@ -346,16 +355,26 @@ public class MappIntelligenceCronjobTest {
     }
 
     @Test
-    public void testRequestLogFileNotExpired() {
+    public void testRequestLogFileNotExpired() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig(CONFIG_FILE);
         mappIntelligenceConfig.setTrackId("111111111111111");
         mappIntelligenceConfig.setFilePath(FILE_PATH);
         mappIntelligenceConfig.setFilePrefix(FILE_PREFIX);
+        mappIntelligenceConfig.setRequestQueues(0);
 
         MappIntelligenceHybrid tracking = new MappIntelligenceHybrid(mappIntelligenceConfig);
+        tracking.setOnFlushComplete((success, queueId) -> {
+            latch.countDown();
+        });
+
         for (int i = 0; i < 100; i++) {
             tracking.track("https://sub.domain.tld/pix?p=400," + i);
         }
+
+        tracking.flush();
+        assertTrue(latch.await(3000, TimeUnit.MILLISECONDS));
 
         try {
             MappIntelligenceCronjob cron = new MappIntelligenceCronjob(mappIntelligenceConfig);
@@ -371,17 +390,27 @@ public class MappIntelligenceCronjobTest {
     }
 
     @Test
-    public void testSendBatchFail() {
+    public void testSendBatchFail() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig(CONFIG_FILE);
         mappIntelligenceConfig.setTrackId("111111111111111");
         mappIntelligenceConfig.setFilePath(FILE_PATH);
         mappIntelligenceConfig.setFilePrefix(FILE_PREFIX);
         mappIntelligenceConfig.setMaxFileLines(25);
+        mappIntelligenceConfig.setRequestQueues(0);
 
         MappIntelligenceHybrid tracking = new MappIntelligenceHybrid(mappIntelligenceConfig);
+        tracking.setOnFlushComplete((success, queueId) -> {
+            latch.countDown();
+        });
+
         for (int i = 0; i < 101; i++) {
             tracking.track("https://sub.domain.tld/pix?p=400," + i);
         }
+
+        tracking.flush();
+        assertTrue(latch.await(3000, TimeUnit.MILLISECONDS));
 
         try {
             MappIntelligenceCronjob cron = new MappIntelligenceCronjob(mappIntelligenceConfig);
@@ -398,17 +427,27 @@ public class MappIntelligenceCronjobTest {
     }
 
     @Test
-    public void testSendBatchSuccess() {
+    public void testSendBatchSuccess() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig(CONFIG_FILE);
         mappIntelligenceConfig.setTrackId("123451234512345");
         mappIntelligenceConfig.setFilePath(FILE_PATH);
         mappIntelligenceConfig.setFilePrefix(FILE_PREFIX);
         mappIntelligenceConfig.setMaxFileLines(25);
+        mappIntelligenceConfig.setRequestQueues(0);
 
         MappIntelligenceHybrid tracking = new MappIntelligenceHybrid(mappIntelligenceConfig);
+        tracking.setOnFlushComplete((success, queueId) -> {
+            latch.countDown();
+        });
+
         for (int i = 0; i < 101; i++) {
             tracking.track("https://sub.domain.tld/pix?p=400," + i);
         }
+
+        tracking.flush();
+        assertTrue(latch.await(3000, TimeUnit.MILLISECONDS));
 
         try {
             MappIntelligenceCronjob cron = new MappIntelligenceCronjob(mappIntelligenceConfig);
@@ -425,22 +464,43 @@ public class MappIntelligenceCronjobTest {
 
     @Test
     public void testEmptyFileLines() {
-        File file = MappIntelligenceUnitUtil.createFile(FILE_PATH + FILE_PREFIX + "-1400000000000" + LOG_FILE_EXTENSION);
+        UUID uuid = UUID.randomUUID();
+        File file = MappIntelligenceUnitUtil.createFile(FILE_PATH + uuid + "-1400000000000" + LOG_FILE_EXTENSION);
         MappIntelligenceUnitUtil.writeToFile(file.getAbsolutePath(), "\n\np=400,0\n\n");
+
+        MappIntelligenceLogger l = MappIntelligenceUnitUtil.getCustomLogger();
 
         MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig(CONFIG_FILE);
         mappIntelligenceConfig.setTrackId("111111111111111");
         mappIntelligenceConfig.setFilePath(FILE_PATH);
-        mappIntelligenceConfig.setFilePrefix(FILE_PREFIX);
+        mappIntelligenceConfig.setFilePrefix(uuid.toString());
+        mappIntelligenceConfig.setLogger(l);
+        mappIntelligenceConfig.setLogLevel(MappIntelligenceLogLevel.DEBUG);
+        mappIntelligenceConfig.setRequestQueues(0);
 
         try {
             MappIntelligenceCronjob cron = new MappIntelligenceCronjob(mappIntelligenceConfig);
 
             assertEquals(1, cron.run());
-            assertEquals(0, MappIntelligenceUnitUtil.getFiles(FILE_PATH, FILE_PREFIX, TEMPORARY_FILE_EXTENSION).length);
-            assertEquals(1, MappIntelligenceUnitUtil.getFiles(FILE_PATH, FILE_PREFIX, LOG_FILE_EXTENSION).length);
 
-            MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, LOG_FILE_EXTENSION);
+            int logFileCounter = 0;
+            File[] logFiles = MappIntelligenceUnitUtil.getFiles(FILE_PATH, uuid.toString(), LOG_FILE_EXTENSION);
+            for (File logFile : logFiles) {
+                logFileCounter++;
+                l.log(logFile.getAbsolutePath());
+            }
+
+            int tmpFileCounter = 0;
+            File[] tmpFiles = MappIntelligenceUnitUtil.getFiles(FILE_PATH, uuid.toString(), TEMPORARY_FILE_EXTENSION);
+            for (File tmpFile : tmpFiles) {
+                tmpFileCounter++;
+                l.log(tmpFile.getAbsolutePath());
+            }
+
+            assertTrue(this.outContent.toString(), 0 == tmpFileCounter);
+            assertTrue(this.outContent.toString(), 1 == logFileCounter);
+
+            MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, uuid.toString(), LOG_FILE_EXTENSION);
         } catch (Exception e) {
             fail();
         }

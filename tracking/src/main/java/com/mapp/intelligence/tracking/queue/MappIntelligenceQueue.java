@@ -1,15 +1,15 @@
 package com.mapp.intelligence.tracking.queue;
 
 import com.mapp.intelligence.tracking.MappIntelligenceConsumer;
-import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 import com.mapp.intelligence.tracking.MappIntelligenceParameter;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerFile;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerHttpClient;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerType;
+import com.mapp.intelligence.tracking.util.RequestScheduler;
 import com.mapp.intelligence.tracking.util.URLString;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.BiConsumer;
 
 /**
  * @author Mapp Digital c/o Webtrekk GmbH
@@ -17,25 +17,9 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  */
 public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
     /**
-     * The maximum request number per batch.
-     */
-    private final int maxBatchSize;
-    /**
-     * The number of resend attempts.
-     */
-    private final int maxAttempt;
-    /**
-     * The interval of request resend in milliseconds.
-     */
-    private final int attemptTimeout;
-    /**
      * Mapp Intelligence request queue.
      */
-    private final ConcurrentLinkedDeque<String> queue = new ConcurrentLinkedDeque<>();
-    /**
-     * Mapp Intelligence consumer.
-     */
-    private MappIntelligenceConsumer consumer;
+    private final RequestScheduler requestScheduler;
 
     /**
      * @param config Mapp Intelligence configuration
@@ -44,74 +28,16 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
         super(config);
 
         String consumerType = (String) config.get("consumerType");
-        this.maxAttempt = (int) config.get("maxAttempt");
-        this.attemptTimeout = (int) config.get("attemptTimeout");
-        this.maxBatchSize = (int) config.get("maxBatchSize");
-        this.consumer = (MappIntelligenceConsumer) config.get("consumer");
-
-        if (this.consumer == null) {
+        MappIntelligenceConsumer consumer = (MappIntelligenceConsumer) config.get("consumer");
+        if (consumer == null) {
             if (consumerType.equals(MappIntelligenceConsumerType.HTTP_CLIENT)) {
-                this.consumer = new MappIntelligenceConsumerHttpClient(config);
+                consumer = new MappIntelligenceConsumerHttpClient(config);
             } else if (consumerType.equals(MappIntelligenceConsumerType.FILE)) {
-                this.consumer = new MappIntelligenceConsumerFile(config);
+                consumer = new MappIntelligenceConsumerFile(config);
             }
         }
-    }
 
-    /**
-     * @param batchContent List of tracking requests
-     *
-     * @return boolean
-     */
-    private boolean sendBatch(List<String> batchContent) {
-        if (this.consumer != null) {
-            return this.consumer.sendBatch(batchContent);
-        }
-
-        return false;
-    }
-
-    /**
-     * @return boolean
-     */
-    private boolean flushQueue() {
-        int currentQueueSize = this.queue.size();
-        boolean wasRequestSuccessful = true;
-        this.logger.debug(String.format(MappIntelligenceMessages.SENT_BATCH_REQUESTS, currentQueueSize));
-
-        while (currentQueueSize > 0 && wasRequestSuccessful) {
-            LinkedList<String> batchContent = new LinkedList<>();
-
-            int batchSize = Integer.min(this.maxBatchSize, currentQueueSize);
-            for (int i = 0; i < batchSize; i++) {
-                String request = queue.poll();
-                if (request != null) {
-                    batchContent.add(request);
-                }
-                currentQueueSize--;
-            }
-
-            wasRequestSuccessful = this.sendBatch(batchContent);
-
-            if (!wasRequestSuccessful) {
-                this.logger.warn(MappIntelligenceMessages.BATCH_REQUEST_FAILED);
-                for (Iterator<String> iter = batchContent.descendingIterator(); iter.hasNext(); ){
-                    queue.addFirst(iter.next());
-                }
-            }
-
-            this.logger.debug(String.format(
-                MappIntelligenceMessages.CURRENT_QUEUE_STATUS,
-                batchSize,
-                this.queue.size()
-            ));
-
-        }
-        if (currentQueueSize == 0) {
-            this.logger.debug(MappIntelligenceMessages.QUEUE_IS_EMPTY);
-        }
-
-        return wasRequestSuccessful;
+        this.requestScheduler = new RequestScheduler(config, consumer);
     }
 
     /**
@@ -138,16 +64,29 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
     }
 
     /**
+     * @param queueId Queue ID
+     *
      * @return List(String)
      */
-    public Deque<String> getQueue() {
-        return this.queue;
+    public Deque<String> getQueue(int queueId) {
+        return this.requestScheduler.getQueue(queueId);
+    }
+
+    /**
+     * @param data Tracking request
+     *
+     * @return Queue ID
+     */
+    private int addToQueue(String data) {
+        return this.requestScheduler.add(data);
     }
 
     /**
      * @param d Tracking request data
+     *
+     * @return Queue ID
      */
-    public void add(String d) {
+    public int add(String d) {
         String data = d;
         if (!data.isEmpty()) {
             Map<String, String> params = new HashMap<>();
@@ -160,22 +99,20 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
             this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_PLATFORM, this.getClientHintUserAgentPlatform());
             this.addNotExistingQueryParameterToMap(data, params, MappIntelligenceParameter.CLIENT_HINT_USER_AGENT_PLATFORM_VERSION, this.getClientHintUserAgentPlatformVersion());
 
-            data += (params.size() > 0 ? "&" + URLString.buildQueryString(params) : "");
-            this.queue.add(data);
+            data += (!params.isEmpty() ? "&" + URLString.buildQueryString(params) : "");
 
-            int currentQueueSize = this.queue.size();
-            this.logger.debug(String.format(MappIntelligenceMessages.ADD_THE_FOLLOWING_REQUEST_TO_QUEUE, currentQueueSize, data));
-
-            if (currentQueueSize >= this.maxBatchSize) {
-                this.flush();
-            }
+            return this.addToQueue(data);
         }
+
+        return -1;
     }
 
     /**
      * @param data Tracking request data
+     *
+     * @return Queue ID
      */
-    public void add(Map<String, String> data) {
+    public int add(Map<String, String> data) {
         this.addQueryParameterToMap(data, MappIntelligenceParameter.USER_IP, this.getUserIP());
         this.addQueryParameterToMap(data, MappIntelligenceParameter.EVER_ID, this.getEverId());
         this.addQueryParameterToMap(data, MappIntelligenceParameter.USER_AGENT, this.getUserAgent());
@@ -199,44 +136,21 @@ public class MappIntelligenceQueue extends MappIntelligenceEnrichment {
             this.getMandatoryQueryParameter(pageName),
             URLString.buildQueryString(data)
         );
-        this.queue.add(request);
 
-        int currentQueueSize = this.queue.size();
-        this.logger.debug(String.format(MappIntelligenceMessages.ADD_THE_FOLLOWING_REQUEST_TO_QUEUE, currentQueueSize, request));
-
-        if (currentQueueSize >= this.maxBatchSize) {
-            this.flush();
-        }
+        return this.addToQueue(request);
     }
 
     /**
-     * @return boolean
+     *
      */
-    public boolean flush() {
-        int currentAttempt = 0;
-        boolean wasRequestSuccessful = false;
-        boolean interrupted = false;
+    public void flush() {
+        this.requestScheduler.flush();
+    }
 
-        try {
-            while (!wasRequestSuccessful && currentAttempt < this.maxAttempt) {
-                wasRequestSuccessful = this.flushQueue();
-                currentAttempt++;
-
-                if (!wasRequestSuccessful) {
-                    try {
-                        Thread.sleep(this.attemptTimeout);
-                    } catch (InterruptedException e) {
-                        interrupted = true;
-                        this.logger.error(MappIntelligenceMessages.GENERIC_ERROR, e.getClass().getName(), e.getMessage());
-                    }
-                }
-            }
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        return wasRequestSuccessful;
+    /**
+     * @param callback Callback for complete flushing
+     */
+    public void setOnFlushComplete(BiConsumer<Boolean, Integer> callback) {
+        this.requestScheduler.setOnFlushComplete(callback);
     }
 }

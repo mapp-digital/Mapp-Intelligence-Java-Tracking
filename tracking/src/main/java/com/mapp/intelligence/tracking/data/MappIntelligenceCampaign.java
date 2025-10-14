@@ -12,7 +12,7 @@ import java.util.Map;
  * configuration, no campaign information such as campaign clicks will be collected. Visits to certain pages or
  * the entry of defined links can be tracked as campaign clicks. Most importantly, campaign tracking uses specific
  * parameters - so-called media codes - that are added to the target URLs of the ads.
- *
+ * <p>
  * Using a media code improves the accuracy of the data collected with the library. Media codes can also be
  * overwritten or supplemented with additional information using campaign parameters.
  *

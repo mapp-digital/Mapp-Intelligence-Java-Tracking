@@ -56,25 +56,30 @@ public class MappIntelligenceHybrid extends AbstractMappIntelligence {
 
     /**
      * Reads all query parameters from the current request and saves them in the file.
+     *
+     * @return Queue ID
      */
-    public void track() {
+    public int track() {
         URL r = this.requestURL;
         if (!this.deactivate && r != null && r.getQuery() != null && !r.getQuery().isEmpty()) {
-            this.queue.add("wt?" + this.requestURL.getQuery());
-            this.queue.flush();
+            return this.queue.add("wt?" + this.requestURL.getQuery());
         }
+
+        return -1;
     }
 
     /**
      * @param rURL request url with query parameters
+     *
+     * @return Queue ID
      */
-    public void track(String rURL) {
+    public int track(String rURL) {
         try {
             this.requestURL = new URL(rURL);
         } catch (MalformedURLException | NullPointerException e) {
             // do nothing
         }
 
-        this.track();
+        return this.track();
     }
 }

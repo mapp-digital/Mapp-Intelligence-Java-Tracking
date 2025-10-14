@@ -102,10 +102,10 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
             return "";
         }
 
-        String payload = String.join(System.getProperty("line.separator"), batchContent);
+        String payload = String.join(System.lineSeparator(), batchContent);
         if (payload.length() >= MAX_PAYLOAD_SIZE) {
             float length = payload.length();
-            double currentPayloadSize = (double) Math.round(length / INTEGER_1024 / INTEGER_1024 * DOUBLE_100) / DOUBLE_100;
+            double currentPayloadSize = Math.round(length / INTEGER_1024 / INTEGER_1024 * DOUBLE_100) / DOUBLE_100;
             this.logger.error(MappIntelligenceMessages.TO_LARGE_PAYLOAD_SIZE, currentPayloadSize);
             return "";
         }

@@ -9,7 +9,7 @@ import java.util.Map;
  * To improve customer identification, you can use customer IDs instead of Mapp Intelligence's long-term cookies
  * ("eid"). The reason for this is that some users or programs automatically delete long-term cookies once a
  * session (visit) ends. Without customer IDs, returning customers will not be identified.
- *
+ * <p>
  * Customer IDs can be passed to the library following a successful login or completed order, for example.
  *
  * @author Mapp Digital c/o Webtrekk GmbH

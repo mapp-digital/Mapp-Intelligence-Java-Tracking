@@ -10,9 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 @SuppressWarnings("unchecked")
 public class MappIntelligenceTrackingConfigTest {
@@ -47,6 +45,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -111,6 +111,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -145,6 +147,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -179,6 +183,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -213,6 +219,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(1, ((List<String>) config.get("containsExclude")).size());
         assertEquals(2, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(1, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -256,6 +264,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -290,6 +300,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -324,6 +336,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(1, ((List<String>) config.get("containsExclude")).size());
         assertEquals(2, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(1, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -367,6 +381,8 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesExclude")).size());
+        assertEquals(false, config.get("activateAdvancedPermission"));
+        assertEquals(0, config.get("advancedPermissionCategory"));
     }
 
     @Test
@@ -947,5 +963,16 @@ public class MappIntelligenceTrackingConfigTest {
 
         Map<String, Object> config = mappIntelligenceConfig.build();
         assertEquals(MappIntelligenceLogLevel.ERROR, config.get("logLevel"));
+    }
+
+    @Test
+    public void testAdvancedPermission() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig())
+            .setActivateAdvancedPermission(true)
+            .setAdvancedPermissionCategory(3);
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+        assertEquals(true, config.get("activateAdvancedPermission"));
+        assertEquals(3, config.get("advancedPermissionCategory"));
     }
 }

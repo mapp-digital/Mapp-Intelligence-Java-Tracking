@@ -3,13 +3,13 @@
     <parent>
         <artifactId>mapp-intelligence-java-tracking</artifactId>
         <groupId>com.mapp.intelligence.tracking</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tracking</artifactId>
     <packaging>jar</packaging>
-    <version>0.2.4-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>tracking</name>
 
     <build>
@@ -119,9 +119,9 @@
     </build>
 
     <scm>
-        <connection>scm:git:https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
-        <developerConnection>scm:git:https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
-        <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</url>
-        <tag>v0.2.0</tag>
+        <connection>scm:git:git://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
+        <developerConnection>scm:git:git@github.com:mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
+        <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
+        <tag>tracking-0.0.17</tag>
     </scm>
 </project>

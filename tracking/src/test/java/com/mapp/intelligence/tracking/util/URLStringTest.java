@@ -39,4 +39,46 @@ public class URLStringTest {
         String queryString = URLString.buildQueryString(data);
         assertEquals("test=t%C3%B6st%20t%C3%A4st&foo=bar", queryString);
     }
+
+    @Test
+    public void testGetQueryParamEmptyURL() {
+        String id = URLString.getQueryParam("", "eid");
+
+        assertEquals("", id);
+    }
+
+    @Test
+    public void testGetQueryParamInvalidURL1() {
+        String id = URLString.getQueryParam("localhost/wt?eid=123456", "eid");
+
+        assertEquals("", id);
+    }
+
+    @Test
+    public void testGetQueryParamInvalidURL2() {
+        String id = URLString.getQueryParam(null, "eid");
+
+        assertEquals("", id);
+    }
+
+    @Test
+    public void testGetQueryParamNotExist() {
+        String id = URLString.getQueryParam("https://localhost/wt?id=", "eid");
+
+        assertEquals("", id);
+    }
+
+    @Test
+    public void testGetQueryParamEmptyParam() {
+        String id = URLString.getQueryParam("https://localhost/wt?eid=", "eid");
+
+        assertEquals("", id);
+    }
+
+    @Test
+    public void testGetQueryParam() {
+        String id = URLString.getQueryParam("https://localhost/wt?eid=123456789", "eid");
+
+        assertEquals("123456789", id);
+    }
 }

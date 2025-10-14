@@ -15,6 +15,7 @@ import org.apache.commons.cli.ParseException;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Mapp Digital c/o Webtrekk GmbH
@@ -218,6 +219,54 @@ public class MappIntelligenceCronjob {
     }
 
     /**
+     * @param files List of files to be sent synchronously.
+     *
+     * @return exit status
+     */
+    private int processFiles(File[] files) {
+        for (File file : files) {
+            String[] fileLines = MappIntelligenceFile.getFileContent(file);
+
+            MappIntelligenceQueue requestQueue = new MappIntelligenceQueue(this.mic);
+            for (String fileLine : fileLines) {
+                if (fileLine.trim().isEmpty()) {
+                    continue;
+                }
+
+                requestQueue.add(fileLine);
+            }
+
+            CountDownLatch latch = new CountDownLatch(1);
+            final boolean[] flushSuccess = {false};
+
+            requestQueue.setOnFlushComplete((success, queueId) -> {
+                flushSuccess[0] = success;
+
+                if (flushSuccess[0]) {
+                    MappIntelligenceFile.deleteFile(file);
+                }
+
+                latch.countDown();
+            });
+
+            requestQueue.flush();
+
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return EXIT_STATUS_FAIL;
+            }
+
+            if (!flushSuccess[0]) {
+                return EXIT_STATUS_FAIL;
+            }
+        }
+
+        return EXIT_STATUS_SUCCESS;
+    }
+
+    /**
      * @return exit status
      */
     public int run() {
@@ -233,7 +282,7 @@ public class MappIntelligenceCronjob {
         File[] files;
         try {
             files = MappIntelligenceFile.getLogFiles(this.filePath, this.filePrefix);
-            if (files.length <= 0) {
+            if (files.length == 0) {
                 this.logger.info(MappIntelligenceMessages.REQUEST_LOG_FILES_NOT_FOUND, this.filePath);
                 return EXIT_STATUS_FAIL;
             }
@@ -242,25 +291,6 @@ public class MappIntelligenceCronjob {
             return EXIT_STATUS_FAIL;
         }
 
-        for (File file : files) {
-            String[] fileLines = MappIntelligenceFile.getFileContent(file);
-
-            MappIntelligenceQueue requestQueue = new MappIntelligenceQueue(this.mic);
-            for (String fileLine : fileLines) {
-                if (fileLine.trim().isEmpty()) {
-                    continue;
-                }
-
-                requestQueue.add(fileLine);
-            }
-
-            if (!requestQueue.flush()) {
-                return EXIT_STATUS_FAIL;
-            }
-
-            MappIntelligenceFile.deleteFile(file);
-        }
-
-        return EXIT_STATUS_SUCCESS;
+        return this.processFiles(files);
     }
 }

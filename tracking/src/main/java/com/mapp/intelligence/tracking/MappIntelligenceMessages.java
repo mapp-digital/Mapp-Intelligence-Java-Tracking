@@ -8,6 +8,7 @@ public class MappIntelligenceMessages {
     // Mapp Intelligence tracking
     private static final String REQUIRED_TRACK_ID_AND_DOMAIN = "The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to";
     public static final String TO_LARGE_BATCH_SIZE = "Batch size is larger than %s req. (%s req.)";
+    public static final String MAX_BATCH_PAYLOAD_LIMIT_REACHED = "Maximum batch payload limit of 20MB for queue -%s- reached (%sMB with %s req.)";
     public static final String TO_LARGE_PAYLOAD_SIZE = "Payload size is larger than 24MB (%sMB)";
     public static final String GENERIC_ERROR = "%s (%s)";
     public static final String CREATE_NEW_LOG_FILE = "Create new file %s (%s) => %s";
@@ -17,16 +18,21 @@ public class MappIntelligenceMessages {
     public static final String SEND_BATCH_DATA = "Send batch data to %s (%s req.)";
     public static final String BATCH_REQUEST_STATUS = "Batch request responding the status code %s";
     public static final String BATCH_RESPONSE_TEXT = "[%s]: %s";
+    public static final String FLUSH_WAS_NOT_SUCCESSFUL = "Flush for queue -%s- was not successful (%s/%s).";
+    public static final String TRY_AGAIN = "Try again for queue -%s- in %s milliseconds.";
+    public static final String CURRENT_THREAD_WAS_INTERRUPT = "Current thread for queue -%s- was interrupt.";
     public static final String REQUIRED_TRACK_ID_AND_DOMAIN_FOR_COOKIE = REQUIRED_TRACK_ID_AND_DOMAIN + " get user cookie";
     public static final String REQUIRED_TRACK_ID_AND_DOMAIN_FOR_TRACKING = REQUIRED_TRACK_ID_AND_DOMAIN + " track data";
     public static final String TRACKING_IS_DEACTIVATED = "Mapp Intelligence tracking is deactivated";
     public static final String TRACKING_IS_DEACTIVATED_BY_IN_AND_EXCLUDE = "Mapp Intelligence tracking is deactivated by include / exclude";
-    public static final String SENT_BATCH_REQUESTS = "Send batch requests, current queue size is %s req.";
-    public static final String BATCH_REQUEST_FAILED = "Batch request failed!";
-    public static final String CURRENT_QUEUE_STATUS = "Batch of %s req. sent, current queue size is %s req.";
-    public static final String QUEUE_IS_EMPTY = "MappIntelligenceQueue is empty";
-    public static final String ADD_THE_FOLLOWING_REQUEST_TO_QUEUE = "Add the following request to queue (%s req.): %s";
+    public static final String SENT_BATCH_REQUESTS = "Send batch requests, current queue -%s- size is %s req.";
+    public static final String BATCH_REQUEST_FAILED = "Batch request for queue -%s- failed!";
+    public static final String CURRENT_QUEUE_STATUS = "Batch of %s req. sent, current queue -%s- size is %s req.";
+    public static final String QUEUE_IS_EMPTY = "Queue -%s- is empty";
+    public static final String ADD_THE_FOLLOWING_REQUEST_TO_QUEUE = "Add the following request to queue -%s- (%s req.): %s";
     public static final String MAPP_INTELLIGENCE = "Mapp Intelligence";
+    public static final String UNDEFINED_CONSUMER_TYPE = "Cannot send because no consumer is available or an undefined consumer type was specified.";
+    public static final String TASK_REJECTED = "Task rejected, queue -%s- must be processed.";
 
     // Mapp Intelligence cronjob
     public static final String REQUIRED_TRACK_ID = "Argument \"-i\" or alternative \"--trackId\" are required";

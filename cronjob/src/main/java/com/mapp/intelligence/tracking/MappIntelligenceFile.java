@@ -86,7 +86,7 @@ class MappIntelligenceFile {
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] bt = new byte[(int) file.length()];
             if (fis.read(bt) > 0) {
-                return new String(bt, StandardCharsets.UTF_8).split(System.getProperty("line.separator"));
+                return new String(bt, StandardCharsets.UTF_8).split(System.lineSeparator());
             }
         } catch (IOException | NullPointerException e) {
             // do nothing
@@ -115,7 +115,7 @@ class MappIntelligenceFile {
     public static boolean checkTemporaryFiles(String filePath, String filePrefix) {
         boolean renameStatus = false;
         File[] tmpFiles = getFiles(filePath, filePrefix, TEMPORARY_FILE_EXTENSION);
-        if (tmpFiles != null && tmpFiles.length > 0) {
+        if (tmpFiles != null) {
             for (File file : tmpFiles) {
                 if (getTimestamp() > extractTimestamp(file) + DEFAULT_MAX_FILE_DURATION) {
                     renameStatus = renameFile(file);

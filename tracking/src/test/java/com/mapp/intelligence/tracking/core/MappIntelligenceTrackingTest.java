@@ -1,18 +1,8 @@
 package com.mapp.intelligence.tracking.core;
 
 import com.mapp.intelligence.tracking.*;
+import com.mapp.intelligence.tracking.data.*;
 import com.mapp.intelligence.tracking.config.MappIntelligenceConfig;
-
-import com.mapp.intelligence.tracking.data.MappIntelligenceDataMap;
-import com.mapp.intelligence.tracking.data.MappIntelligenceParameterMap;
-import com.mapp.intelligence.tracking.data.MappIntelligenceAction;
-import com.mapp.intelligence.tracking.data.MappIntelligenceCampaign;
-import com.mapp.intelligence.tracking.data.MappIntelligenceCustomer;
-import com.mapp.intelligence.tracking.data.MappIntelligenceOrder;
-import com.mapp.intelligence.tracking.data.MappIntelligencePage;
-import com.mapp.intelligence.tracking.data.MappIntelligenceProduct;
-import com.mapp.intelligence.tracking.data.MappIntelligenceProductCollection;
-import com.mapp.intelligence.tracking.data.MappIntelligenceSession;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -22,10 +12,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
 
 public class MappIntelligenceTrackingTest {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
@@ -49,7 +37,7 @@ public class MappIntelligenceTrackingTest {
             .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")));
+        assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")) > -1);
         assertTrue(this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to track data"));
     }
 
@@ -61,17 +49,18 @@ public class MappIntelligenceTrackingTest {
             .setLogLevel(MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")));
+        assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")) > -1);
         assertTrue(this.outContent.toString().contains("[Mapp Intelligence]: The Mapp Intelligence \"trackDomain\" and \"trackId\" are required to track data"));
     }
 
     @Test
     public void testEmptyData() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertTrue(mappIntelligenceTracking.track(new MappIntelligenceParameterMap()));
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        assertTrue(mappIntelligenceTracking.track(new MappIntelligenceParameterMap()) > -1);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -82,10 +71,11 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testEmptyTrack() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertTrue(mappIntelligenceTracking.track());
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        assertTrue(mappIntelligenceTracking.track() > -1);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -101,8 +91,8 @@ public class MappIntelligenceTrackingTest {
             .setDeactivate(true);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertTrue(mappIntelligenceTracking.flush());
-        assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")));
+        mappIntelligenceTracking.flush();
+        assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap()).add("pn", "en.page.test")) > -1);
         assertTrue(this.outContent.toString().contains("[Mapp Intelligence]: Mapp Intelligence tracking is deactivated"));
     }
 
@@ -121,11 +111,12 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testSimpleData1() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertFalse(mappIntelligenceTracking.track((MappIntelligenceParameterMap) null));
+        assertFalse(mappIntelligenceTracking.track((MappIntelligenceParameterMap) null) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(0, requests.size());
     }
 
@@ -133,24 +124,26 @@ public class MappIntelligenceTrackingTest {
     public void testSimpleData2() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
         mic.setDeactivate(true);
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertFalse(mappIntelligenceTracking.track((MappIntelligenceParameterMap) null));
+        assertFalse(mappIntelligenceTracking.track((MappIntelligenceParameterMap) null) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(0, requests.size());
     }
 
     @Test
     public void testSimpleData3() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.track((new MappIntelligenceParameterMap())
             .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
-        ));
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -161,6 +154,7 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testSimpleData4() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.track((new MappIntelligenceParameterMap())
@@ -179,9 +173,9 @@ public class MappIntelligenceTrackingTest {
             .add(MappIntelligenceParameter.PRODUCT_COST, "59.99;49.99;15.99")
             .add(MappIntelligenceParameter.PRODUCT_QUANTITY, "1;5;1")
             .add(MappIntelligenceParameter.PRODUCT_STATUS, "conf")
-        ));
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -200,12 +194,64 @@ public class MappIntelligenceTrackingTest {
         assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
         assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
         assertTrue(request.matches(".*&st=conf.*"));
+        assertFalse(request.matches(".*&pec=0.*"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
+    }
+
+    @Test
+    public void testSimpleDataWithAdvancedPermission() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setActivateAdvancedPermission(true)
+            .setAdvancedPermissionCategory(3);
+        mic.setRequestQueues(0);
+
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceParameterMap())
+            .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
+            .add(MappIntelligenceCustomParameter.CUSTOM_PAGE_CATEGORY.with(1), "page.test")
+            .add(MappIntelligenceCustomParameter.CUSTOM_PAGE_CATEGORY.with(2), "en")
+            .add(MappIntelligenceCustomParameter.CUSTOM_PAGE_CATEGORY.with(3), "page")
+            .add(MappIntelligenceCustomParameter.CUSTOM_PAGE_CATEGORY.with(4), "test")
+            .add(MappIntelligenceParameter.ORDER_VALUE, "360.93")
+            .add(MappIntelligenceParameter.CUSTOMER_ID, "24")
+            .add(MappIntelligenceParameter.FIRST_NAME, "John")
+            .add(MappIntelligenceParameter.LAST_NAME, "Doe")
+            .add(MappIntelligenceParameter.EMAIL, "john@doe.com")
+            .add(MappIntelligenceCustomParameter.CUSTOM_SESSION_PARAMETER.with(1), "1")
+            .add(MappIntelligenceParameter.PRODUCT_ID, "065ee2b001;085eo2f009;995ee1k906")
+            .add(MappIntelligenceParameter.PRODUCT_COST, "59.99;49.99;15.99")
+            .add(MappIntelligenceParameter.PRODUCT_QUANTITY, "1;5;1")
+            .add(MappIntelligenceParameter.PRODUCT_STATUS, "conf")
+        ) > -1);
+
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
+        assertEquals(1, requests.size());
+
+        String request = requests.peek();
+        assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
+        assertTrue(request.matches(".*&cg1=page\\.test.*"));
+        assertTrue(request.matches(".*&cg2=en.*"));
+        assertTrue(request.matches(".*&cg3=page.*"));
+        assertTrue(request.matches(".*&cg4=test.*"));
+        assertTrue(request.matches(".*&ov=360\\.93.*"));
+        assertTrue(request.matches(".*&cd=24.*"));
+        assertTrue(request.matches(".*&uc703=John.*"));
+        assertTrue(request.matches(".*&uc704=Doe.*"));
+        assertTrue(request.matches(".*&uc700=john%40doe\\.com.*"));
+        assertTrue(request.matches(".*&cs1=1.*"));
+        assertTrue(request.matches(".*&ba=065ee2b001%3B085eo2f009%3B995ee1k906.*"));
+        assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
+        assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
+        assertTrue(request.matches(".*&st=conf.*"));
+        assertTrue(request.matches(".*&pec=3.*"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
     public void testSimpleProductData() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         Map<String, String> status = new HashMap<>();
@@ -223,9 +269,9 @@ public class MappIntelligenceTrackingTest {
                 .add(MappIntelligenceParameter.PRODUCT_COST, "59.99")
                 .add(MappIntelligenceParameter.PRODUCT_QUANTITY, "1")
                 .add(MappIntelligenceParameter.PRODUCT_STATUS, entry.getKey())
-            ));
+            ) > -1);
 
-            Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+            Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
             String request = requests.getLast();
             assertTrue(request.matches(".*&ba=065ee2b001.*"));
             assertTrue(request.matches(".*&co=59\\.99.*"));
@@ -237,11 +283,12 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testDataObject1() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertFalse(mappIntelligenceTracking.track((MappIntelligenceDataMap) null));
+        assertFalse(mappIntelligenceTracking.track((MappIntelligenceDataMap) null) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(0, requests.size());
     }
 
@@ -249,24 +296,26 @@ public class MappIntelligenceTrackingTest {
     public void testDataObject2() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
         mic.setDeactivate(true);
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
-        assertFalse(mappIntelligenceTracking.track((MappIntelligenceDataMap) null));
+        assertFalse(mappIntelligenceTracking.track((MappIntelligenceDataMap) null) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(0, requests.size());
     }
 
     @Test
     public void testDataObject3() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
                 .page(new MappIntelligencePage("en.page.test"))
-        ));
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -277,56 +326,71 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testDataObject4() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
-                .setCategory(1, "page.test")
-                .setCategory(2, "en")
-                .setCategory(3, "page")
-                .setCategory(4, "test");
+            .setCategory(1, "page.test")
+            .setCategory(2, "en")
+            .setCategory(3, "page")
+            .setCategory(4, "test");
 
         MappIntelligenceSession session = (new MappIntelligenceSession())
-                .setParameter(1, "1");
+            .setParameter(1, "1");
+
+        MappIntelligenceRegistration registration = (new MappIntelligenceRegistration())
+            .setEmail("john@doe.com")
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setGroupId("abc123");
+
+        Map<String, Object> engageAttribute = new HashMap<String, Object>();
+        engageAttribute.put("engage.attribute.fittingToolUsed", "true");
+        MappIntelligenceEngage engage = (new MappIntelligenceEngage())
+            .setAttributes(engageAttribute)
+            .setEventName("Virtual Fitting Room Used");
 
         MappIntelligenceCustomer customer = (new MappIntelligenceCustomer("24"))
-                .setFirstName("John")
-                .setLastName("Doe")
-                .setCustomIdentifier("foo")
-                .setEmail("john@doe.com");
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setCustomIdentifier("foo")
+            .setEmail("john@doe.com");
 
         MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
-                .setCost(59.99)
-                .setQuantity(1)
-                .setStatus(MappIntelligenceProduct.CONFIRMATION);
+            .setCost(59.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
 
         MappIntelligenceProduct product2 = (new MappIntelligenceProduct("085eo2f009"))
-                .setCost(49.99)
-                .setQuantity(5)
-                .setStatus(MappIntelligenceProduct.CONFIRMATION);
+            .setCost(49.99)
+            .setQuantity(5)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
 
         MappIntelligenceProduct product3 = (new MappIntelligenceProduct("995ee1k906"))
-                .setCost(15.99)
-                .setQuantity(1)
-                .setStatus(MappIntelligenceProduct.CONFIRMATION);
+            .setCost(15.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
 
         MappIntelligenceProduct product4 = (new MappIntelligenceProduct("abc"))
-                .setCost(0).setQuantity(0)
-                .setSoldOut(true)
-                .setStatus(MappIntelligenceProduct.CONFIRMATION);
+            .setCost(0).setQuantity(0)
+            .setSoldOut(true)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
 
         assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
-                .action(new MappIntelligenceAction("webtrekk_ignore"))
-                .page(page)
-                .campaign(new MappIntelligenceCampaign("wt_mc%3Dfoo.bar"))
-                .order(new MappIntelligenceOrder(360.93))
-                .session(session)
-                .customer(customer)
-                .product((new MappIntelligenceProductCollection())
-                        .add(product1).add(product2).add(product3).add(product4)
-                )
-        ));
+            .action(new MappIntelligenceAction("webtrekk_ignore"))
+            .page(page)
+            .campaign(new MappIntelligenceCampaign("wt_mc%3Dfoo.bar"))
+            .order(new MappIntelligenceOrder(360.93))
+            .session(session)
+            .customer(customer)
+            .engage(engage)
+            .registration(registration)
+            .product((new MappIntelligenceProductCollection())
+                .add(product1).add(product2).add(product3).add(product4)
+            )
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -346,12 +410,318 @@ public class MappIntelligenceTrackingTest {
         assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
         assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
         assertTrue(request.matches(".*&st=conf.*"));
+        assertFalse(request.matches(".*&pec=3.*"));
+        assertTrue(request.matches(".*&eaj=%7B%22engage\\.attribute\\.fittingToolUsed%22%3A%22true%22%7D.*"));
+        assertTrue(request.matches(".*&ecwen=Virtual%20Fitting%20Room%20Used.*"));
+        assertFalse(request.matches(".*&er4=.*"));
+        assertFalse(request.matches(".*&er5=.*"));
+        assertFalse(request.matches(".*&er1=.*"));
+        assertFalse(request.matches(".*&er2=.*"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
     @Test
     public void testDataObject5() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
+            .setCategory(1, "page.test")
+            .setCategory(2, "en")
+            .setCategory(3, "page")
+            .setCategory(4, "test");
+
+        MappIntelligenceSession session = (new MappIntelligenceSession())
+            .setParameter(1, "1");
+
+        MappIntelligenceRegistration registration = (new MappIntelligenceRegistration())
+            .setEmail("john@doe.com")
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setGroupId("abc123")
+            .setOptIn(true);
+
+        Map<String, Object> engageAttribute = new HashMap<String, Object>();
+        engageAttribute.put("engage.attribute.fittingToolUsed", "true");
+        MappIntelligenceEngage engage = (new MappIntelligenceEngage())
+            .setAttributes(engageAttribute)
+            .setEventName("Virtual Fitting Room Used");
+
+        MappIntelligenceCustomer customer = (new MappIntelligenceCustomer("24"))
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setCustomIdentifier("foo")
+            .setEmail("john@doe.com");
+
+        MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
+            .setCost(59.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product2 = (new MappIntelligenceProduct("085eo2f009"))
+            .setCost(49.99)
+            .setQuantity(5)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product3 = (new MappIntelligenceProduct("995ee1k906"))
+            .setCost(15.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product4 = (new MappIntelligenceProduct("abc"))
+            .setCost(0).setQuantity(0)
+            .setSoldOut(true)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+            .action(new MappIntelligenceAction("webtrekk_ignore"))
+            .page(page)
+            .campaign(new MappIntelligenceCampaign("wt_mc%3Dfoo.bar"))
+            .order(new MappIntelligenceOrder(360.93))
+            .session(session)
+            .customer(customer)
+            .engage(engage)
+            .registration(registration)
+            .product((new MappIntelligenceProductCollection())
+                .add(product1).add(product2).add(product3).add(product4)
+            )
+        ) > -1);
+
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
+        assertEquals(1, requests.size());
+
+        String request = requests.peek();
+        assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
+        assertTrue(request.matches(".*&ceid=foo.*"));
+        assertTrue(request.matches(".*&cg1=page\\.test.*"));
+        assertTrue(request.matches(".*&cg2=en.*"));
+        assertTrue(request.matches(".*&cg3=page.*"));
+        assertTrue(request.matches(".*&cg4=test.*"));
+        assertTrue(request.matches(".*&ov=360\\.93.*"));
+        assertTrue(request.matches(".*&cd=24.*"));
+        assertTrue(request.matches(".*&uc703=John.*"));
+        assertTrue(request.matches(".*&uc704=Doe.*"));
+        assertTrue(request.matches(".*&uc700=john%40doe\\.com.*"));
+        assertTrue(request.matches(".*&cs1=1.*"));
+        assertTrue(request.matches(".*&ba=065ee2b001%3B085eo2f009%3B995ee1k906.*"));
+        assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
+        assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
+        assertTrue(request.matches(".*&st=conf.*"));
+        assertFalse(request.matches(".*&pec=3.*"));
+        assertTrue(request.matches(".*&eaj=%7B%22engage\\.attribute\\.fittingToolUsed%22%3A%22true%22%7D.*"));
+        assertTrue(request.matches(".*&ecwen=Virtual%20Fitting%20Room%20Used.*"));
+        assertTrue(request.matches(".*&er4=John.*"));
+        assertTrue(request.matches(".*&er5=Doe.*"));
+        assertTrue(request.matches(".*&er1=john%40doe\\.com.*"));
+        assertTrue(request.matches(".*&er2=abc123.*"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
+    }
+
+    @Test
+    public void testDataObjectWithAdvancedPermissionCategory0() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
+        mic.setActivateAdvancedPermission(true);
+        mic.setAdvancedPermissionCategory(0);
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
+            .setCategory(1, "page.test")
+            .setCategory(2, "en")
+            .setCategory(3, "page")
+            .setCategory(4, "test");
+
+        MappIntelligenceSession session = (new MappIntelligenceSession())
+            .setParameter(1, "1");
+
+        MappIntelligenceRegistration registration = (new MappIntelligenceRegistration())
+            .setEmail("john@doe.com")
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setGroupId("abc123")
+            .setOptIn(true);
+
+        Map<String, Object> engageAttribute = new HashMap<String, Object>();
+        engageAttribute.put("engage.attribute.fittingToolUsed", "true");
+        MappIntelligenceEngage engage = (new MappIntelligenceEngage())
+            .setAttributes(engageAttribute)
+            .setEventName("Virtual Fitting Room Used");
+
+        MappIntelligenceCustomer customer = (new MappIntelligenceCustomer("24"))
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setCustomIdentifier("foo")
+            .setEmail("john@doe.com");
+
+        MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
+            .setCost(59.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product2 = (new MappIntelligenceProduct("085eo2f009"))
+            .setCost(49.99)
+            .setQuantity(5)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product3 = (new MappIntelligenceProduct("995ee1k906"))
+            .setCost(15.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product4 = (new MappIntelligenceProduct("abc"))
+            .setCost(0).setQuantity(0)
+            .setSoldOut(true)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+            .action(new MappIntelligenceAction("webtrekk_ignore"))
+            .page(page)
+            .campaign(new MappIntelligenceCampaign("wt_mc%3Dfoo.bar"))
+            .order(new MappIntelligenceOrder(360.93))
+            .session(session)
+            .customer(customer)
+            .engage(engage)
+            .registration(registration)
+            .product((new MappIntelligenceProductCollection())
+                .add(product1).add(product2).add(product3).add(product4)
+            )
+        ) > -1);
+
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
+        assertEquals(1, requests.size());
+
+        String request = requests.peek();
+        assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
+        assertTrue(request.matches(".*&ceid=foo.*"));
+        assertTrue(request.matches(".*&cg1=page\\.test.*"));
+        assertTrue(request.matches(".*&cg2=en.*"));
+        assertTrue(request.matches(".*&cg3=page.*"));
+        assertTrue(request.matches(".*&cg4=test.*"));
+        assertTrue(request.matches(".*&ov=360\\.93.*"));
+        assertTrue(request.matches(".*&cd=24.*"));
+        assertTrue(request.matches(".*&uc703=John.*"));
+        assertTrue(request.matches(".*&uc704=Doe.*"));
+        assertTrue(request.matches(".*&uc700=john%40doe\\.com.*"));
+        assertTrue(request.matches(".*&cs1=1.*"));
+        assertTrue(request.matches(".*&ba=065ee2b001%3B085eo2f009%3B995ee1k906.*"));
+        assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
+        assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
+        assertTrue(request.matches(".*&st=conf.*"));
+        assertTrue(request.matches(".*&pec=0.*"));
+        assertTrue(request.matches(".*&eaj=%7B%22engage\\.attribute\\.fittingToolUsed%22%3A%22true%22%7D.*"));
+        assertTrue(request.matches(".*&ecwen=Virtual%20Fitting%20Room%20Used.*"));
+        assertTrue(request.matches(".*&er4=John.*"));
+        assertTrue(request.matches(".*&er5=Doe.*"));
+        assertTrue(request.matches(".*&er1=john%40doe\\.com.*"));
+        assertTrue(request.matches(".*&er2=abc123.*"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
+    }
+
+    @Test
+    public void testDataObjectWithAdvancedPermissionCategory3() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
+        mic.setActivateAdvancedPermission(true);
+        mic.setAdvancedPermissionCategory(3);
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
+            .setCategory(1, "page.test")
+            .setCategory(2, "en")
+            .setCategory(3, "page")
+            .setCategory(4, "test");
+
+        MappIntelligenceSession session = (new MappIntelligenceSession())
+            .setParameter(1, "1");
+
+        MappIntelligenceRegistration registration = (new MappIntelligenceRegistration())
+            .setEmail("john@doe.com")
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setGroupId("abc123")
+            .setOptIn(true);
+
+        Map<String, Object> engageAttribute = new HashMap<String, Object>();
+        engageAttribute.put("engage.attribute.fittingToolUsed", "true");
+        MappIntelligenceEngage engage = (new MappIntelligenceEngage())
+            .setAttributes(engageAttribute)
+            .setEventName("Virtual Fitting Room Used");
+
+        MappIntelligenceCustomer customer = (new MappIntelligenceCustomer("24"))
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setCustomIdentifier("foo")
+            .setEmail("john@doe.com");
+
+        MappIntelligenceProduct product1 = (new MappIntelligenceProduct("065ee2b001"))
+            .setCost(59.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product2 = (new MappIntelligenceProduct("085eo2f009"))
+            .setCost(49.99)
+            .setQuantity(5)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product3 = (new MappIntelligenceProduct("995ee1k906"))
+            .setCost(15.99)
+            .setQuantity(1)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        MappIntelligenceProduct product4 = (new MappIntelligenceProduct("abc"))
+            .setCost(0).setQuantity(0)
+            .setSoldOut(true)
+            .setStatus(MappIntelligenceProduct.CONFIRMATION);
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+            .action(new MappIntelligenceAction("webtrekk_ignore"))
+            .page(page)
+            .campaign(new MappIntelligenceCampaign("wt_mc%3Dfoo.bar"))
+            .order(new MappIntelligenceOrder(360.93))
+            .session(session)
+            .customer(customer)
+            .engage(engage)
+            .registration(registration)
+            .product((new MappIntelligenceProductCollection())
+                .add(product1).add(product2).add(product3).add(product4)
+            )
+        ) > -1);
+
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
+        assertEquals(1, requests.size());
+
+        String request = requests.peek();
+        assertTrue(request.matches("^wt\\?p=600,en\\.page\\.test,,,,,[0-9]{13},0,,&.*"));
+        assertTrue(request.matches(".*&ceid=foo.*"));
+        assertTrue(request.matches(".*&cg1=page\\.test.*"));
+        assertTrue(request.matches(".*&cg2=en.*"));
+        assertTrue(request.matches(".*&cg3=page.*"));
+        assertTrue(request.matches(".*&cg4=test.*"));
+        assertTrue(request.matches(".*&ov=360\\.93.*"));
+        assertTrue(request.matches(".*&cd=24.*"));
+        assertTrue(request.matches(".*&uc703=John.*"));
+        assertTrue(request.matches(".*&uc704=Doe.*"));
+        assertTrue(request.matches(".*&uc700=john%40doe\\.com.*"));
+        assertTrue(request.matches(".*&cs1=1.*"));
+        assertTrue(request.matches(".*&ba=065ee2b001%3B085eo2f009%3B995ee1k906.*"));
+        assertTrue(request.matches(".*&co=59\\.99%3B49\\.99%3B15\\.99.*"));
+        assertTrue(request.matches(".*&qn=1%3B5%3B1.*"));
+        assertTrue(request.matches(".*&st=conf.*"));
+        assertTrue(request.matches(".*&pec=3.*"));
+        assertTrue(request.matches(".*&eaj=%7B%22engage\\.attribute\\.fittingToolUsed%22%3A%22true%22%7D.*"));
+        assertTrue(request.matches(".*&ecwen=Virtual%20Fitting%20Room%20Used.*"));
+        assertTrue(request.matches(".*&er4=John.*"));
+        assertTrue(request.matches(".*&er5=Doe.*"));
+        assertTrue(request.matches(".*&er1=john%40doe\\.com.*"));
+        assertTrue(request.matches(".*&er2=abc123.*"));
+        assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
+    }
+
+    @Test
+    public void testDataObject6() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
@@ -362,9 +732,11 @@ public class MappIntelligenceTrackingTest {
             .session(null)
             .customer(null)
             .product(null)
-        ));
+            .engage(null)
+            .registration(null)
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -375,6 +747,7 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testObjectProductData() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         Map<String, String> status = new HashMap<>();
@@ -396,9 +769,9 @@ public class MappIntelligenceTrackingTest {
                 .product((new MappIntelligenceProductCollection())
                     .add(product1)
                 )
-            ));
+            ) > -1);
 
-            Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+            Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
             String request = requests.getLast();
             assertTrue(request.matches(".*&ba=065ee2b001.*"));
             assertTrue(request.matches(".*&co=59\\.99.*"));
@@ -415,9 +788,9 @@ public class MappIntelligenceTrackingTest {
             .product((new MappIntelligenceProductCollection())
                 .add(product1)
             )
-        ));
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         String request = requests.getLast();
         assertTrue(request.matches(".*&ba=065ee2b001.*"));
         assertTrue(request.matches(".*&co=59\\.99.*"));
@@ -428,6 +801,7 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testWithoutTemporarySessionId() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
@@ -475,9 +849,9 @@ public class MappIntelligenceTrackingTest {
             .product((new MappIntelligenceProductCollection())
                 .add(product1).add(product2).add(product3).add(product4)
             )
-        ));
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -489,6 +863,7 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testWithTemporarySessionId() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
 
         MappIntelligencePage page = (new MappIntelligencePage("en.page.test"))
@@ -537,9 +912,9 @@ public class MappIntelligenceTrackingTest {
             .product((new MappIntelligenceProductCollection())
                 .add(product1).add(product2).add(product3).add(product4)
             )
-        ));
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(1, requests.size());
 
         String request = requests.peek();
@@ -777,6 +1152,7 @@ public class MappIntelligenceTrackingTest {
     @Test
     public void testDeactivateByInAndExclude() {
         MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
         mic.addContainsInclude("sub.domain1.tld")
             .addContainsExclude("sub.domain1.tld")
             .setRequestURL("https://sub.domain.tld:80/path/to/page.html?foo=bar&test=123#abc");
@@ -785,9 +1161,9 @@ public class MappIntelligenceTrackingTest {
 
         assertFalse(mappIntelligenceTracking.track((new MappIntelligenceParameterMap())
             .add(MappIntelligenceParameter.PAGE_NAME, "en.page.test")
-        ));
+        ) > -1);
 
-        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking);
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(0, requests.size());
     }
 }

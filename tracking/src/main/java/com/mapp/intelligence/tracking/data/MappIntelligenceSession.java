@@ -22,7 +22,7 @@ import java.util.Map;
  * @version 0.0.1
  */
 public class MappIntelligenceSession extends AbstractMappIntelligenceData {
-    private final String TEMPORARY_SESSION_ID_TYPE = "2.0.0";
+    private static final String TEMPORARY_SESSION_ID_TYPE = "2.0.0";
 
     /**
      * Pass the current users login status here.
@@ -43,7 +43,7 @@ public class MappIntelligenceSession extends AbstractMappIntelligenceData {
      * during a visit several times, only the first or last value is evaluated, based on the configuration of the
      * Webtrekk GUI.
      */
-    private Map<Integer, String> parameter = new HashMap<>();
+    private final Map<Integer, String> parameter = new HashMap<>();
 
     /**
      * Default constructor.
@@ -53,7 +53,7 @@ public class MappIntelligenceSession extends AbstractMappIntelligenceData {
     }
 
     /**
-     * @return List of query strings
+     * @return A list of query strings
      */
     protected Map<String, String> getQueryList() {
         Map<String, String> queryList = new HashMap<>();
@@ -115,7 +115,7 @@ public class MappIntelligenceSession extends AbstractMappIntelligenceData {
      */
     public MappIntelligenceSession setTemporarySessionId(String tSessionId) {
         this.temporarySessionId = tSessionId;
-        this.temporarySessionIdType = this.TEMPORARY_SESSION_ID_TYPE;
+        this.temporarySessionIdType = TEMPORARY_SESSION_ID_TYPE;
 
         return this;
     }

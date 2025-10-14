@@ -21,6 +21,6 @@ class MappIntelligenceFormatter extends Formatter {
      */
     @Override
     public String format(LogRecord logRecord) {
-        return String.format("%s%s", formatMessage(logRecord), System.getProperty("line.separator"));
+        return String.format("%s%s", formatMessage(logRecord), System.lineSeparator());
     }
 }

@@ -10,6 +10,7 @@ import com.mapp.intelligence.tracking.util.AbstractMappIntelligenceCleaner;
 import com.mapp.intelligence.tracking.util.MappIntelligenceDebugLogger;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * @author Mapp Digital c/o Webtrekk GmbH
@@ -49,6 +50,19 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
      * Mapp Intelligence debug logger.
      */
     protected final MappIntelligenceDebugLogger logger;
+    /**
+     * Enable if you need to differentiate between additional usage options for the tracked data, e.g.,
+     * only to your Intelligence instance or to both Intelligence and Engage.
+     */
+    protected final boolean activateAdvancedPermission;
+    /**
+     * If activateAdvancedPermission is activated
+     * <ul>
+     *     <li>0 (default): only Intelligence</li>
+     *     <li>3: Intelligence and Engage</li>
+     * </ul>
+     */
+    protected final int advancedPermissionCategory;
 
     /**
      * @param config Mapp Intelligence configuration
@@ -66,6 +80,9 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
         this.deactivateByInAndExclude = (boolean) mappIntelligenceConfig.get("deactivateByInAndExclude");
         this.trackId = (String) mappIntelligenceConfig.get("trackId");
         this.trackDomain = (String) mappIntelligenceConfig.get("trackDomain");
+
+        this.activateAdvancedPermission = (boolean) mappIntelligenceConfig.get("activateAdvancedPermission");
+        this.advancedPermissionCategory = (int) mappIntelligenceConfig.get("advancedPermissionCategory");
     }
 
     /**
@@ -73,7 +90,21 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
      */
     @Override
     protected void close() {
+        this.flush();
+    }
+
+    /**
+     *
+     */
+    public final void flush() {
         this.queue.flush();
+    }
+
+    /**
+     * @param callback Callback for complete flushing
+     */
+    public final void setOnFlushComplete(BiConsumer<Boolean, Integer> callback) {
+        this.queue.setOnFlushComplete(callback);
     }
 
     /**
