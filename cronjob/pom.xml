@@ -3,13 +3,13 @@
     <parent>
         <artifactId>mapp-intelligence-java-tracking</artifactId>
         <groupId>com.mapp.intelligence.tracking</groupId>
-        <version>1.0.3</version>
+        <version>1.0.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>cronjob</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.3</version>
+    <version>1.0.4-SNAPSHOT</version>
     <name>cronjob</name>
 
     <dependencies>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>com.mapp.intelligence.tracking</groupId>
             <artifactId>tracking</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -110,6 +110,6 @@
         <connection>scm:git:https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
         <developerConnection>scm:git:https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
         <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
-        <tag>v1.0.3</tag>
+        <tag>v1.0.0</tag>
     </scm>
 </project>
