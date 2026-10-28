@@ -59,21 +59,22 @@ public class FilterServlet implements Filter {
         if (requestUrl.contains("/assets/") || requestUrl.contains("favicon")) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
-            TrackingService ts = new TrackingService(request, response);
-            request.setAttribute("tracking", ts);
+            try (TrackingService ts = new TrackingService(request, response)) {
+                request.setAttribute("tracking", ts);
 
-            new CustomerService(request, response);
+                new CustomerService(request, response);
 
-            request.setAttribute("products", this.productList);
-            request.setAttribute("randomize", this.randomizeList);
-            request.setAttribute("bestseller", this.bestSellerList);
-            request.setAttribute("latest", this.latestProductList);
-            request.setAttribute("feature", this.featureProductList);
-            request.setAttribute("requestUrl", requestUrl);
+                request.setAttribute("products", this.productList);
+                request.setAttribute("randomize", this.randomizeList);
+                request.setAttribute("bestseller", this.bestSellerList);
+                request.setAttribute("latest", this.latestProductList);
+                request.setAttribute("feature", this.featureProductList);
+                request.setAttribute("requestUrl", requestUrl);
 
-            request.getRequestDispatcher("index.jsp").forward(servletRequest, servletResponse);
+                request.getRequestDispatcher("index.jsp").forward(servletRequest, servletResponse);
 
-            ts.track();
+                ts.track();
+            }
         }
     }
 

@@ -5,7 +5,7 @@
     <groupId>com.mapp.intelligence.tracking</groupId>
     <artifactId>mapp-intelligence-java-tracking</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.4-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
 
     <name>mapp-intelligence-java-tracking</name>
     <description>Server-side tracking is crucial for companies that must measure mission-critical information on their website, such as order information or other website goals. The Java library of Mapp Intelligence helps you to set up server-side tracking when using Mapp Intelligence as your analysis tool.</description>
@@ -183,11 +183,11 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
+                <version>1.6.13</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
-                    <nexusUrl>https://ossrh-staging-api.central.sonatype.com/</nexusUrl>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
@@ -233,16 +233,16 @@
     </dependencies>
 
     <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <name>OSSRH Snapshot Repository</name>
-            <url>https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/</url>
-        </snapshotRepository>
         <repository>
             <id>ossrh</id>
             <name>OSSRH Release Repository</name>
-            <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>OSSRH Snapshot Repository</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <profiles>
@@ -277,9 +277,9 @@
     </profiles>
 
     <scm>
-        <connection>scm:git:https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</connection>
-        <developerConnection>scm:git:https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking.git</developerConnection>
-        <url>https://github.com/mapp-digital/Mapp-Intelligence-Java-Tracking</url>
-        <tag>v1.0.0</tag>
+        <connection>scm:git:git@github.com:mapp-digital/sdk-pixel-java-server-sdk.git</connection>
+        <developerConnection>scm:git:git@github.com:mapp-digital/sdk-pixel-java-server-sdk.git</developerConnection>
+        <url>https://github.com/mapp-digital/sdk-pixel-java-server-sdk</url>
+        <tag>v0.0.17</tag>
     </scm>
 </project>

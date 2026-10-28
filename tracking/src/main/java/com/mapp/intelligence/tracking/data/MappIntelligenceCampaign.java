@@ -84,6 +84,27 @@ public class MappIntelligenceCampaign extends AbstractMappIntelligenceData {
     }
 
     /**
+     * @return A campaign ID consists of a media code name and its value, separated by "%3D"
+     */
+    public String getId() {
+        return this.id;
+    }
+
+    /**
+     * @return The names of the URL parameters that carry the campaign ID
+     */
+    public List<String> getMediaCode() {
+        return this.mediaCode;
+    }
+
+    /**
+     * @return Whether a campaign ID is tracked only once per session
+     */
+    public boolean isOncePerSession() {
+        return this.oncePerSession;
+    }
+
+    /**
      * @param i A campaign ID consists of a media code name and its value, separated by "%3D"
      *
      * @return MappIntelligenceCampaign

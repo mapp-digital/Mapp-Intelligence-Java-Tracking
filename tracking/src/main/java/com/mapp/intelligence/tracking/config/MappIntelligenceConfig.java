@@ -11,6 +11,7 @@ import com.mapp.intelligence.tracking.util.URLString;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,6 +149,14 @@ public class MappIntelligenceConfig {
      */
     private int maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
     /**
+     * Whether maxBatchSize was set explicitly.
+     */
+    private boolean maxBatchSizeSet;
+    /**
+     * Messages of the setters, logged with the next build when the logger is known.
+     */
+    private final List<Object[]> buildMessages = new ArrayList<>();
+    /**
      * The maximum number of requests saved in the queue.
      */
     private int maxQueueSize = DEFAULT_MAX_QUEUE_SIZE;
@@ -171,10 +180,6 @@ public class MappIntelligenceConfig {
      * The number of request queues.
      */
     private int requestQueues = DEFAULT_REQUEST_QUEUES;
-    /**
-     * Sends every request via SSL.
-     */
-    private boolean forceSSL = true;
     /**
      * Specific URL parameter(s) in the default page name.
      */
@@ -283,7 +288,6 @@ public class MappIntelligenceConfig {
             .setMaxFileLines(prop.getIntegerProperty(MappIntelligenceProperties.MAX_FILE_LINES, this.maxFileLines))
             .setMaxFileDuration(prop.getIntegerProperty(MappIntelligenceProperties.MAX_FILE_DURATION, this.maxFileDuration))
             .setMaxFileSize(prop.getIntegerProperty(MappIntelligenceProperties.MAX_FILE_SIZE, this.maxFileSize))
-            .setForceSSL(prop.getBooleanProperty(MappIntelligenceProperties.FORCE_SSL, true))
             .setContainsInclude(prop.getListProperty(MappIntelligenceProperties.CONTAINS_INCLUDE, this.containsInclude, ";"))
             .setContainsExclude(prop.getListProperty(MappIntelligenceProperties.CONTAINS_EXCLUDE, this.containsExclude, ";"))
             .setMatchesInclude(prop.getListProperty(MappIntelligenceProperties.MATCHES_INCLUDE, this.matchesInclude, ";"))
@@ -395,9 +399,8 @@ public class MappIntelligenceConfig {
             statistics += 1;
         }
 
-        if (this.forceSSL) {
-            statistics += 2;
-        }
+        // every request is sent via SSL
+        statistics += 2;
 
         if (this.logger != null) {
             statistics += 4;
@@ -442,10 +445,11 @@ public class MappIntelligenceConfig {
      * @param value Origin value
      * @param def Default value
      *
-     * @return List(String)
+     * @return A modifiable copy of the value, so an immutable list passed by the caller does not break
+     *         the add...() methods or build(), and later changes of the caller's list have no effect
      */
     private List<String> getOrDefault(List<String> value, List<String> def) {
-        return (value != null) ? value : def;
+        return (value != null) ? new ArrayList<>(value) : def;
     }
 
     /**
@@ -783,6 +787,7 @@ public class MappIntelligenceConfig {
      */
     public MappIntelligenceConfig setMaxBatchSize(int mBatchSize) {
         this.maxBatchSize = mBatchSize;
+        this.maxBatchSizeSet = true;
         return this;
     }
 
@@ -802,7 +807,13 @@ public class MappIntelligenceConfig {
      * @return MappIntelligenceConfig
      */
     public MappIntelligenceConfig setMaxFileLines(int mFileLines) {
-        if (mFileLines >= 1 && mFileLines <= DEFAULT_MAX_FILE_LINES) {
+        if (mFileLines > DEFAULT_MAX_FILE_LINES) {
+            // the limit matches the limits of a batch, a larger value is reduced to it
+            this.buildMessages.add(new Object[] {
+                "warn", MappIntelligenceMessages.VALUE_LARGER_THAN_MAXIMUM, mFileLines, "maxFileLines", DEFAULT_MAX_FILE_LINES
+            });
+            this.maxFileLines = DEFAULT_MAX_FILE_LINES;
+        } else if (mFileLines >= 1) {
             this.maxFileLines = mFileLines;
         }
 
@@ -815,7 +826,13 @@ public class MappIntelligenceConfig {
      * @return MappIntelligenceConfig
      */
     public MappIntelligenceConfig setMaxFileDuration(int mFileDuration) {
-        if (mFileDuration >= 1 && mFileDuration <= DEFAULT_MAX_FILE_DURATION) {
+        if (mFileDuration > DEFAULT_MAX_FILE_DURATION) {
+            // the limit matches the limits of a batch, a larger value is reduced to it
+            this.buildMessages.add(new Object[] {
+                "warn", MappIntelligenceMessages.VALUE_LARGER_THAN_MAXIMUM, mFileDuration, "maxFileDuration", DEFAULT_MAX_FILE_DURATION
+            });
+            this.maxFileDuration = DEFAULT_MAX_FILE_DURATION;
+        } else if (mFileDuration >= 1) {
             this.maxFileDuration = mFileDuration;
         }
 
@@ -828,7 +845,13 @@ public class MappIntelligenceConfig {
      * @return MappIntelligenceConfig
      */
     public MappIntelligenceConfig setMaxFileSize(int mFileSize) {
-        if (mFileSize >= 1 && mFileSize <= DEFAULT_MAX_FILE_SIZE) {
+        if (mFileSize > DEFAULT_MAX_FILE_SIZE) {
+            // the limit matches the limits of a batch, a larger value is reduced to it
+            this.buildMessages.add(new Object[] {
+                "warn", MappIntelligenceMessages.VALUE_LARGER_THAN_MAXIMUM, mFileSize, "maxFileSize", DEFAULT_MAX_FILE_SIZE
+            });
+            this.maxFileSize = DEFAULT_MAX_FILE_SIZE;
+        } else if (mFileSize >= 1) {
             this.maxFileSize = mFileSize;
         }
 
@@ -862,12 +885,14 @@ public class MappIntelligenceConfig {
     }
 
     /**
-     * @param fSSL Sends every request via SSL
+     * @param fSSL Ignored, every request is sent via SSL
      *
      * @return MappIntelligenceConfig
+     * @deprecated Every request is sent via SSL. The value is ignored, and the method will be removed in a
+     *             future version.
      */
+    @Deprecated
     public MappIntelligenceConfig setForceSSL(boolean fSSL) {
-        this.forceSSL = fSSL;
         return this;
     }
 
@@ -1005,11 +1030,31 @@ public class MappIntelligenceConfig {
     }
 
     /**
+     * Logs the messages of the setters, the logger is known only now.
+     */
+    private void logBuildMessages() {
+        MappIntelligenceDebugLogger l = new MappIntelligenceDebugLogger(this.logger, this.logLevel);
+        for (Object[] message : this.buildMessages) {
+            Object[] args = Arrays.copyOfRange(message, 2, message.length);
+            if ("warn".equals(message[0])) {
+                l.warn((String) message[1], args);
+            } else {
+                l.debug((String) message[1], args);
+            }
+        }
+
+        this.buildMessages.clear();
+    }
+
+    /**
      * @return Map(String, Object)
      */
     public Map<String, Object> build() {
-        if (this.domain.isEmpty()) {
-            this.domain.add(this.getOwnDomain());
+        // the own domain is derived from the current request URL on every build and not stored, so a
+        // reused config does not keep the host of the first request, and an immutable list is not modified
+        List<String> buildDomain = new ArrayList<>(this.domain);
+        if (buildDomain.isEmpty()) {
+            buildDomain.add(this.getOwnDomain());
         }
 
         if (this.consumerType.equals(MappIntelligenceConsumerType.FILE)) {
@@ -1021,19 +1066,27 @@ public class MappIntelligenceConfig {
                 this.filePrefix = "MappIntelligenceRequests";
             }
 
+            // every request is written immediately, one line per request
+            if (this.maxBatchSizeSet && this.maxBatchSize != 1) {
+                this.buildMessages.add(new Object[] {
+                    "debug", MappIntelligenceMessages.MAX_BATCH_SIZE_OVERWRITTEN, this.maxBatchSize, this.consumerType
+                });
+            }
+
             this.maxBatchSize = 1;
         }
 
-        if (!this.containsInclude.isEmpty() || !this.containsExclude.isEmpty() || !this.matchesInclude.isEmpty() || !this.matchesExclude.isEmpty()) {
-            this.deactivateByInAndExclude = this.isDeactivateByInAndExclude();
-        }
+        this.logBuildMessages();
+
+        // always recompute, otherwise a config that is reused after all filters were removed stays deactivated
+        this.deactivateByInAndExclude = this.isDeactivateByInAndExclude();
 
         int statistics = this.getStatistics();
 
         Map<String, Object> config = new HashMap<>();
         config.put("trackId", this.trackId);
         config.put("trackDomain", this.trackDomain);
-        config.put("domain", this.domain);
+        config.put("domain", buildDomain);
         config.put("deactivate", this.deactivate);
         config.put("deactivateByInAndExclude", this.deactivateByInAndExclude);
         config.put("logger", this.logger);
@@ -1053,7 +1106,7 @@ public class MappIntelligenceConfig {
         config.put("maxFileSize", this.maxFileSize);
         config.put("requestInterval", this.requestInterval);
         config.put("requestQueues", this.requestQueues);
-        config.put("forceSSL", this.forceSSL);
+        config.put("forceSSL", true);
         config.put("useParamsForDefaultPageName", this.useParamsForDefaultPageName);
         config.put("userAgent", this.userAgent);
         config.put("clientHintUserAgent", this.clientHintUserAgent);

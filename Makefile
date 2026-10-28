@@ -17,6 +17,9 @@ test:
 release:
 	BUILD_TYPE="release" JAVA_VERSION="8" bash -c "docker-compose build && docker-compose run java && docker-compose down --volumes"
 
+docs-sync:
+	python3 scripts/docs-to-markdown.py
+
 demo:
 	bash -c "docker-compose build && docker-compose up shop"
 
@@ -32,38 +35,23 @@ demo-log:
 demo-ssh:
 	docker exec -it mapp-intelligence-java-tracking_shop_1 bash
 
-test-all:
-	make test-java8 && make test-java9 && make test-java10 && make test-java11 && make test-java12 && make test-java13 && make test-java14 && make test-java15 && make test-java16 && make test-java17 && make test-java18
+# several JVMs write into the same request logging files while the cron job takes them over, e.g.
+# make stress-test STRESS_ARGS="-Dstress.jvms=8 -Dstress.threads=4 -Dstress.requests=5000 -Dstress.maxFileLines=100"
+stress-test:
+	BUILD_TYPE="stress-test" JAVA_VERSION="8" STRESS_ARGS="$(STRESS_ARGS)" bash -c "docker-compose run java && docker-compose down --volumes"
 
+test-all:
+	make test-java8 && make test-java11 && make test-java17 && make test-java18
+
+# newest JDK with an Ubuntu 22.04 (jammy) image, see docker-compose.yaml
 test-latest:
-	make test JAVA_VERSION=latest
+	make test JAVA_VERSION=25
 
 test-java8:
 	make test JAVA_VERSION=8
 
-test-java9:
-	make test JAVA_VERSION=9
-
-test-java10:
-	make test JAVA_VERSION=10
-
 test-java11:
 	make test JAVA_VERSION=11
-
-test-java12:
-	make test JAVA_VERSION=12
-
-test-java13:
-	make test JAVA_VERSION=13
-
-test-java14:
-	make test JAVA_VERSION=14
-
-test-java15:
-	make test JAVA_VERSION=15
-
-test-java16:
-	make test JAVA_VERSION=16
 
 test-java17:
 	make test JAVA_VERSION=17
@@ -86,10 +74,7 @@ test-java21:
 test-java22:
 	make test JAVA_VERSION=22
 
-test-java23:
-	make test JAVA_VERSION=23
-
-test-java24:
-	make test JAVA_VERSION=24
+test-java25:
+	make test JAVA_VERSION=25
 
 .PHONY: test-all

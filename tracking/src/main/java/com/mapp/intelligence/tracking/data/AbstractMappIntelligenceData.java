@@ -21,6 +21,11 @@ public abstract class AbstractMappIntelligenceData {
     protected final Map<String, String> getParameterList(Map<Integer, String> params, String key) {
         Map<String, String> data = new HashMap<>();
         for (Map.Entry<Integer, String> entry : params.entrySet()) {
+            // null counts as not set
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
+
             data.put(key + entry.getKey(), entry.getValue());
         }
 
@@ -48,7 +53,8 @@ public abstract class AbstractMappIntelligenceData {
         for (Map.Entry<String, String> entry : queryList.entrySet()) {
             property = entry.getKey();
             queryParameter = entry.getValue();
-            if (data.containsKey(property)) {
+            // a setter called with null counts as not set
+            if (data.get(property) != null) {
                 if (data.get(property) instanceof HashMap) {
                     Map<Integer, String> dataMerge = (Map<Integer, String>) data.get(property);
                     queryParameters.putAll(this.getParameterList(dataMerge, queryParameter));

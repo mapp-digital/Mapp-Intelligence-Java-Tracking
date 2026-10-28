@@ -22,8 +22,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.*;
 
 public class MappIntelligenceTrackingQueueTest {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
@@ -102,15 +100,12 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch requests, current queue -0- size is 15 req."));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (10 req.)"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed!"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 15 req."));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Flush for queue -0- was not successful (1/1)"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Discarding a batch of 10 req. after HTTP status 404"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed!"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 5 req."));
 
         Deque<String> requests = queue.getQueue(0);
-        assertEquals(15, requests.size());
-        for (int i = 0; i < 15; i++) {
-            assertTrue(Objects.requireNonNull(requests.poll()).matches("^wt\\?p=600," + i + ",,,,,[0-9]{13},0,,.*"));
-        }
+        assertEquals(0, requests.size());
     }
 
     @Test
@@ -135,26 +130,43 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch requests, current queue -0- size is 15 req."));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (10 req.)"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 15 req."));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Flush for queue -0- was not successful (1/1)"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Discarding a batch of 10 req. after HTTP status 404"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 5 req."));
 
         Deque<String> requests = queue.getQueue(0);
-        assertEquals(15, requests.size());
-        for (int i = 0; i < 15; i++) {
-            assertTrue(Objects.requireNonNull(requests.poll()).contains("wt?p=300," + i));
-        }
+        assertEquals(0, requests.size());
     }
 
     @Test
     public void testMaxBatchSizeFlush3() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch secondHalfAdded = new CountDownLatch(1);
+        List<Integer> batchSizes = new CopyOnWriteArrayList<>();
+
+        // holds the first batch until the second half of the requests is queued, so they are
+        // guaranteed to be added while the flush is still running - with a real track server this
+        // depended on how fast the network answered
+        MappIntelligenceConsumer consumer = batchContent -> {
+            if (batchSizes.isEmpty()) {
+                try {
+                    assertTrue(secondHalfAdded.await(10, TimeUnit.SECONDS));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            batchSizes.add(batchContent.size());
+            return true;
+        };
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
             .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
             .setLogLevel(MappIntelligenceLogLevel.DEBUG)
             .setMaxBatchSize(10)
-            .setRequestQueues(0);
+            .setRequestQueues(0)
+            .setConsumerType(MappIntelligenceConsumerType.CUSTOM)
+            .setConsumer(consumer);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.setOnFlushComplete((success, queueId) -> latch.countDown());
@@ -164,25 +176,24 @@ public class MappIntelligenceTrackingQueueTest {
         }
 
         queue.flush();
-        MappIntelligenceUnitUtil.await(5);
 
         for (int i = 15; i < 30; i++) {
             queue.add((new MappIntelligenceParameterMap()).add("pn", i + "").build());
         }
+        secondHalfAdded.countDown();
 
         assertTrue(latch.await(30, TimeUnit.SECONDS));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch requests, current queue -0- size is"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (10 req.)"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Flush for queue -0- was not successful (1/1)"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
+
+        // requests added during the flush are sent by the same flush, in batches of at most 10
+        assertEquals(Arrays.asList(10, 10, 10), batchSizes);
 
         Deque<String> requests = queue.getQueue(0);
-        assertEquals(30, requests.size());
-        for (int i = 0; i < 30; i++) {
-            assertTrue(Objects.requireNonNull(requests.poll()).matches("^wt\\?p=600," + i + ",,,,,[0-9]{13},0,,.*"));
-        }
+        assertEquals(0, requests.size());
+
+        queue.close(false);
     }
 
     @Test
@@ -211,15 +222,12 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch requests, current queue -0- size is 20"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (5 req.)"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 5 req. sent, current queue -0- size is 20 req."));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Discarding a batch of 5 req. after HTTP status 404"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Task rejected, queue -0- must be processed"));
 
         Deque<String> requests = queue.getQueue(0);
-        assertEquals(20, requests.size());
-        for (int i = 0; i < 20; i++) {
-            assertTrue(Objects.requireNonNull(requests.poll()).matches("^wt\\?p=600," + i + ",,,,,[0-9]{13},0,,.*"));
-        }
+        assertEquals(0, requests.size());
     }
 
     @Test
@@ -245,15 +253,12 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch requests, current queue -0- size is 15 req."));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (10 req.)"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 15 req."));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Flush for queue -0- was not successful (1/1)"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Discarding a batch of 10 req. after HTTP status 404"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 5 req."));
 
         Deque<String> requests = queue.getQueue(0);
-        assertEquals(15, requests.size());
-        for (int i = 0; i < 15; i++) {
-            assertTrue(Objects.requireNonNull(requests.poll()).matches("^wt\\?p=600," + i + ",,,,,[0-9]{13},0,,.*"));
-        }
+        assertEquals(0, requests.size());
     }
 
     @Test
@@ -278,15 +283,12 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch requests, current queue -0- size is 15 req."));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (10 req.)"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 15 req."));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Flush for queue -0- was not successful (1/1)"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Discarding a batch of 10 req. after HTTP status 404"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 10 req. sent, current queue -0- size is 5 req."));
 
         Deque<String> requests = queue.getQueue(0);
-        assertEquals(15, requests.size());
-        for (int i = 0; i < 15; i++) {
-            assertTrue(Objects.requireNonNull(requests.poll()).contains("wt?p=300," + i));
-        }
+        assertEquals(0, requests.size());
     }
 
     @Test
@@ -888,9 +890,9 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (1 req.)"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("HTTP Status 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed!"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 1 req. sent, current queue -0- size is 1 req."));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Flush for queue -0- was not successful (1/1)"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Discarding a batch of 1 req. after HTTP status 404"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed!"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 1 req. sent, current queue -0- size is 0 req."));
     }
 
     @Test
@@ -912,9 +914,9 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (1 req.)"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request responding the status code 404"));
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("HTTP Status 404"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 1 req. sent, current queue -0- size is 1 req."));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Flush for queue -0- was not successful (1/1)"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Discarding a batch of 1 req. after HTTP status 404"));
+        assertFalse(this.outContent.toString(), this.outContent.toString().contains("Batch request for queue -0- failed"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("Batch of 1 req. sent, current queue -0- size is 0 req."));
     }
 
     @Test
@@ -1008,18 +1010,35 @@ public class MappIntelligenceTrackingQueueTest {
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Queue -0- is empty"));
 
         MappIntelligenceUnitUtil.deleteFiles(tempFilePath, tempFilePrefix, ".tmp");
+
+        MappIntelligenceUnitUtil.deleteFiles(tempFilePath, tempFilePrefix, ".lock");
         MappIntelligenceUnitUtil.deleteFiles(tempFilePath, tempFilePrefix, ".log");
     }
 
     @Test
     public void testMaxBatchRequestBodySize() throws InterruptedException {
+        // limit of RequestScheduler: 20 MB payload per batch
+        final long maxBatchRequestBodySize = 20 * 1024 * 1024;
         CountDownLatch latch = new CountDownLatch(1);
+        List<List<String>> batches = new CopyOnWriteArrayList<>();
+
+        // records the batches instead of sending them: the limit is applied when the batch is built, a
+        // real track server only makes the test slow and dependent on the network. RETRY puts the batch
+        // back into the queue, like a track server that rejects it
+        MappIntelligenceConsumer consumer = batchContent -> {
+            batches.add(new ArrayList<>(batchContent));
+            return false;
+        };
 
         MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
             .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
             .setLogLevel(MappIntelligenceLogLevel.INFO)
             .setMaxBatchSize(500 * 1000)
-            .setRequestQueues(0);
+            .setRequestQueues(0)
+            // the test needs more requests in the queue than the default maximum queue size
+            .setMaxQueueSize(0)
+            .setConsumerType(MappIntelligenceConsumerType.CUSTOM)
+            .setConsumer(consumer);
 
         MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
         queue.setOnFlushComplete((success, queueId) -> latch.countDown());
@@ -1034,8 +1053,25 @@ public class MappIntelligenceTrackingQueueTest {
 
         assertTrue(this.outContent.toString(), this.outContent.toString().contains("Maximum batch payload limit of 20MB for queue -0- reached"));
 
+        // the batch was cut at 20 MB: fewer requests than in the queue, and not more than one request
+        // beyond the limit
+        assertEquals(1, batches.size());
+        List<String> batch = batches.get(0);
+        assertTrue(batch.size() < 10 * 1000);
+
+        long payloadSize = 0;
+        for (String request : batch) {
+            payloadSize += (request + System.lineSeparator()).length();
+        }
+        long lastRequestSize = (batch.get(batch.size() - 1) + System.lineSeparator()).length();
+        assertTrue(payloadSize >= maxBatchRequestBodySize);
+        assertTrue(payloadSize - lastRequestSize < maxBatchRequestBodySize);
+
+        // the rejected batch went back into the queue, nothing was lost
         Deque<String> requests = queue.getQueue(0);
         assertEquals(10 * 1000, requests.size());
+
+        queue.close(false);
     }
 
     @Test
@@ -1186,8 +1222,13 @@ public class MappIntelligenceTrackingQueueTest {
 
     @Test
     public void stressTestWithMultipleThreads() throws InterruptedException {
-        MappIntelligenceConsumer consumerMock = mock(MappIntelligenceConsumer.class);
-        when(consumerMock.sendBatch(anyList())).thenReturn(true);
+        // not a Mockito mock: the scheduler calls send(), whose default delegates to sendBatch(),
+        // and a mock does not run default methods
+        AtomicInteger sentBatches = new AtomicInteger(0);
+        MappIntelligenceConsumer consumerMock = batchContent -> {
+            sentBatches.incrementAndGet();
+            return true;
+        };
 
         int threadCount = 20;
         int requestsPerThread = 50;
@@ -1216,6 +1257,143 @@ public class MappIntelligenceTrackingQueueTest {
 
         MappIntelligenceUnitUtil.await(3000);
 
-        verify(consumerMock, atLeast(1)).sendBatch(anyList());
+        assertTrue(sentBatches.get() >= 1);
+    }
+
+    @Test
+    public void testReferrerWithoutProtocolDoesNotThrow() {
+        // "example.com/path" splits into exactly two elements - the old guard read index 2 and threw
+        String referrerURL = "sub.domain.tld/page.html";
+
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setReferrerURL(referrerURL)
+            .setDomain(Collections.singletonList("sub.domain.tld"))
+            .setRequestQueues(0);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.add(new HashMap<>());
+
+        Deque<String> requests = queue.getQueue(0);
+        assertEquals(1, requests.size());
+        assertTrue(Objects.requireNonNull(requests.peek()).matches("^wt\\?p=600,0,,,,,[0-9]{13},.+"));
+    }
+
+    @Test
+    public void testDefaultPageNameWithValuelessQueryParameter() {
+        // "?foo&bb=value" - the parameter without "=" used to throw in getQueryMap
+        String requestURL = "https://sub.domain.tld/path/to/page.html?foo&bb=value";
+
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setRequestURL(requestURL)
+            .addUseParamsForDefaultPageName("bb")
+            .setRequestQueues(0);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.add(new HashMap<>());
+
+        Deque<String> requests = queue.getQueue(0);
+        assertEquals(1, requests.size());
+        // the page name is the second field of "p=", pu carries the raw URL and would match anything
+        assertTrue(Objects.requireNonNull(requests.peek()).matches("^wt\\?p=600,[^,]*bb%3Dvalue,.+"));
+    }
+
+    @Test
+    public void testDefaultPageNameKeepsEqualsInQueryParameterValue() {
+        String requestURL = "https://sub.domain.tld/path/to/page.html?bb=a=b=c";
+
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setRequestURL(requestURL)
+            .addUseParamsForDefaultPageName("bb")
+            .setRequestQueues(0);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.add(new HashMap<>());
+
+        Deque<String> requests = queue.getQueue(0);
+        assertEquals(1, requests.size());
+        assertTrue(Objects.requireNonNull(requests.peek()).matches("^wt\\?p=600,[^,]*bb%3Da%3Db%3Dc,.+"));
+    }
+
+    @Test
+    public void testQueueSizeCounterStaysAccurateAcrossFlush() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setMaxBatchSize(10)
+            .setRequestQueues(0);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.setOnFlushComplete((success, queueId) -> latch.countDown());
+
+        for (int i = 0; i < 15; i++) {
+            queue.add("wt?p=300," + i);
+        }
+        // the counter has to report the real size, not a stale one
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("queue -0- (15 req.)"));
+
+        queue.flush();
+        assertTrue(latch.await(10, TimeUnit.SECONDS));
+        assertEquals(0, queue.getQueue(0).size());
+
+        // after the queue drained the counter must start at 1 again, not continue at 16
+        queue.add("wt?p=300,after-flush");
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("queue -0- (1 req.)"));
+    }
+
+    @Test
+    public void testQueueSizeCounterIsRestoredOnRequeue() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        // unreachable port -> SocketTimeout -> the batch is requeued
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "www.google.com:81"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setLogLevel(MappIntelligenceLogLevel.DEBUG)
+            .setConnectionTimeout(2000)
+            .setReadTimeout(2000)
+            .setMaxAttempt(1)
+            .setRequestQueues(0);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+        queue.setOnFlushComplete((success, queueId) -> latch.countDown());
+
+        for (int i = 0; i < 3; i++) {
+            queue.add("wt?p=300," + i);
+        }
+
+        queue.flush();
+        assertTrue(latch.await(30, TimeUnit.SECONDS));
+
+        // the requests went back into the queue, so the counter has to be back at 3 as well
+        assertEquals(3, queue.getQueue(0).size());
+        queue.add("wt?p=300,3");
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("queue -0- (4 req.)"));
+    }
+
+    @Test
+    public void testAddingManyRequestsIsNotQuadratic() {
+        MappIntelligenceConfig mappIntelligenceConfig = (new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net"))
+            .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
+            .setRequestQueues(0)
+            // the test needs more requests in the queue than the default maximum queue size
+            .setMaxQueueSize(0);
+
+        MappIntelligenceQueue queue = new MappIntelligenceQueue(mappIntelligenceConfig.build());
+
+        // ConcurrentLinkedDeque.size() per add made this O(n^2): ~30 s for 100k on the dev machine,
+        // ~23 ms with the counter. The bound is deliberately generous, it only has to catch a
+        // reintroduced size() call.
+        long start = System.nanoTime();
+        for (int i = 0; i < 100000; i++) {
+            queue.add("wt?p=400," + i + "&cp1=value" + i);
+        }
+        long elapsedMillis = (System.nanoTime() - start) / 1000000;
+
+        assertEquals(100000, queue.getQueue(0).size());
+        assertTrue("adding 100k requests took " + elapsedMillis + " ms", elapsedMillis < 10000);
     }
 }

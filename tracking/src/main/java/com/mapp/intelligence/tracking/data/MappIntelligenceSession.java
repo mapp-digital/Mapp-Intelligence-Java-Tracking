@@ -114,8 +114,9 @@ public class MappIntelligenceSession extends AbstractMappIntelligenceData {
      * @return MappIntelligenceSession
      */
     public MappIntelligenceSession setTemporarySessionId(String tSessionId) {
+        // the type belongs to an ID, without one it is not sent either
         this.temporarySessionId = tSessionId;
-        this.temporarySessionIdType = TEMPORARY_SESSION_ID_TYPE;
+        this.temporarySessionIdType = (tSessionId != null && !tSessionId.isEmpty()) ? TEMPORARY_SESSION_ID_TYPE : "";
 
         return this;
     }

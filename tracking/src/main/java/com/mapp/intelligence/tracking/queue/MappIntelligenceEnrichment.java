@@ -30,6 +30,18 @@ class MappIntelligenceEnrichment {
      * Constant for the max random number.
      */
     private static final int MAX_RANDOM = 99999;
+    /**
+     * Campaign ID that replaces a campaign which was already transmitted in this session.
+     */
+    private static final String CAMPAIGN_IGNORE = "ignore%3Dignore";
+    /**
+     * Separator between the media code name and its value inside a campaign ID.
+     */
+    private static final String CAMPAIGN_SEPARATOR = "%3D";
+    /**
+     * Maximum URL encoded length of the transmitted campaigns cookie, older entries are dropped.
+     */
+    private static final int MAX_TRANSMITTED_CAMPAIGNS_LENGTH = 4000;
 
     /**
      * Your Mapp Intelligence track ID provided by Mapp.
@@ -93,8 +105,30 @@ class MappIntelligenceEnrichment {
     private final Map<String, String> cookie;
     /**
      * Mapp Intelligence unique user id.
+     *
+     * <p>The only field of this class that is not effectively final: {@code getUserIdCookie()} fills
+     * it lazily. {@code volatile} so the value is visible to a thread that only reads it via
+     * {@code getEverId()}, and the lazy initialization is guarded by {@code everIdLock} - without
+     * that, two callers could each generate an ID and the cookie handed back to one of them would
+     * not match the "eid" that was actually sent.</p>
      */
-    private String everId;
+    private volatile String everId;
+    /**
+     * Guards the lazy initialization of {@code everId}.
+     */
+    private final Object everIdLock = new Object();
+    /**
+     * Campaign IDs that were already transmitted in this session, oldest first.
+     */
+    private final List<String> transmittedCampaigns = new ArrayList<>();
+    /**
+     * Whether the transmitted campaigns were already read from the cookie.
+     */
+    private boolean transmittedCampaignsLoaded;
+    /**
+     * Whether a new campaign was transmitted and the cookie therefore has to be written back.
+     */
+    private boolean transmittedCampaignsUpdated;
     /**
      * Mapp Intelligence debug logger.
      */
@@ -140,7 +174,11 @@ class MappIntelligenceEnrichment {
      */
     private String getReferrerDomain(String referrer) {
         String[] referrerSplit = referrer.split("/");
-        if (referrerSplit.length >= 2) {
+
+        // index 2 is the host in "https://example.com/path", so three elements are required - the
+        // guard used to ask for two and then read index 2, which threw for a referrer without a
+        // protocol ("example.com/path")
+        if (referrerSplit.length >= 3) {
             return referrerSplit[2].toLowerCase();
         }
 
@@ -344,7 +382,25 @@ class MappIntelligenceEnrichment {
             return "";
         }
 
-        return URLString.decode(this.requestURL.toString()).split("//")[1];
+        // from the parts of the URL: a "//" in the path or a URL in a query value must not cut it off
+        URL r = this.requestURL;
+        String uri = r.getAuthority() + r.getPath();
+        if (r.getQuery() != null) {
+            uri += "?" + r.getQuery();
+        }
+
+        if (r.getRef() != null) {
+            uri += "#" + r.getRef();
+        }
+
+        return URLString.decode(uri);
+    }
+
+    /**
+     * @return Protocol of the request URL ("http" or "https"), "https" without request URL
+     */
+    protected final String getRequestProtocol() {
+        return (this.requestURL != null) ? this.requestURL.getProtocol() : "https";
     }
 
     /**
@@ -356,12 +412,17 @@ class MappIntelligenceEnrichment {
             return map;
         }
 
-        String queryString = URLString.decode(this.requestURL.getQuery());
-        if (!queryString.isEmpty()) {
-            String[] params = queryString.split("&");
-            for (String param : params) {
-                String[] paramSplit = param.split("=");
-                map.put(paramSplit[0], paramSplit[1]);
+        String queryString = this.requestURL.getQuery();
+        if (queryString != null && !queryString.isEmpty()) {
+            // split first, then decode every part: an encoded "&", "=" or "?" stays in its value
+            for (String param : queryString.split("&")) {
+                if (param.isEmpty()) {
+                    continue;
+                }
+
+                // limit 2 keeps a "=" inside the value, and a parameter without "=" has no value
+                String[] paramSplit = param.split("=", 2);
+                map.put(URLString.decode(paramSplit[0]), (paramSplit.length > 1) ? URLString.decode(paramSplit[1]) : "");
             }
         }
 
@@ -404,6 +465,164 @@ class MappIntelligenceEnrichment {
     }
 
     /**
+     * Reads the campaigns that were already transmitted in this session from the "wtstp_tcc" cookie.
+     */
+    private void readTransmittedCampaigns() {
+        if (this.transmittedCampaignsLoaded) {
+            return;
+        }
+        this.transmittedCampaignsLoaded = true;
+
+        String cookieValue = this.getCookieValue(MappIntelligenceParameter.TRANSMITTED_CAMPAIGNS_COOKIE_NAME);
+        for (String transmittedCampaign : cookieValue.split(";")) {
+            if (!transmittedCampaign.isEmpty() && !this.transmittedCampaigns.contains(transmittedCampaign)) {
+                this.transmittedCampaigns.add(transmittedCampaign);
+            }
+        }
+    }
+
+    /**
+     * Builds the campaign ID from the media code parameters of the request URL, the same way the
+     * client-side pixel does.
+     *
+     * @param mediaCodes Names of the URL parameters that carry the campaign ID
+     *
+     * @return String
+     */
+    private String readCampaignIdFromRequestURL(List<String> mediaCodes) {
+        if (mediaCodes == null || mediaCodes.isEmpty()) {
+            return "";
+        }
+
+        Map<String, String> queryMap = this.getQueryMap();
+        List<String> campaignIds = new ArrayList<>();
+
+        for (String mediaCode : mediaCodes) {
+            String mediaCodeValue = queryMap.getOrDefault(mediaCode, "");
+            if (mediaCodeValue.isEmpty()) {
+                continue;
+            }
+
+            campaignIds.add(mediaCode + CAMPAIGN_SEPARATOR + mediaCodeValue);
+        }
+
+        return String.join(";", campaignIds);
+    }
+
+    /**
+     * Drops every campaign that was already transmitted in this session and remembers the rest, so
+     * they are not transmitted again either.
+     *
+     * <p>Works per campaign: with {@code ?mc=A&wt_mc=B} and only A already transmitted, B is still
+     * sent. Only when nothing new is left is the whole ID replaced by "ignore%3Dignore".</p>
+     *
+     * @param campaignId Campaign ID of the current request, several IDs separated by ";"
+     *
+     * @return The campaign ID to send
+     */
+    private String filterTransmittedCampaigns(String campaignId) {
+        List<String> newCampaignIds = new ArrayList<>();
+        for (String singleCampaignId : campaignId.split(";")) {
+            if (singleCampaignId.isEmpty()
+                || singleCampaignId.equals(CAMPAIGN_IGNORE)
+                || this.transmittedCampaigns.contains(singleCampaignId)
+                || newCampaignIds.contains(singleCampaignId)) {
+                continue;
+            }
+
+            newCampaignIds.add(singleCampaignId);
+        }
+
+        if (newCampaignIds.isEmpty()) {
+            return CAMPAIGN_IGNORE;
+        }
+
+        this.transmittedCampaigns.addAll(newCampaignIds);
+        this.transmittedCampaignsUpdated = true;
+
+        return String.join(";", newCampaignIds);
+    }
+
+    /**
+     * Resolves the campaign ID that is sent as "mc".
+     *
+     * <p>An explicitly set ID always wins. Only when none is set are the media code parameters of
+     * the request URL evaluated. With "once per session" a campaign that was already transmitted in
+     * this session is left out; if none is left, the ID is replaced by "ignore%3Dignore".</p>
+     *
+     * @param currentId      Explicitly set campaign ID, may be empty
+     * @param mediaCodes     Names of the URL parameters that carry the campaign ID
+     * @param oncePerSession Whether a campaign is transmitted only once per session
+     *
+     * @return String
+     */
+    protected final String resolveCampaignId(String currentId, List<String> mediaCodes, boolean oncePerSession) {
+        if (oncePerSession) {
+            this.readTransmittedCampaigns();
+        }
+
+        String campaignId = (currentId != null) ? currentId : "";
+        if (campaignId.isEmpty() && mediaCodes != null) {
+            campaignId = this.readCampaignIdFromRequestURL(mediaCodes);
+        }
+
+        if (campaignId.isEmpty()) {
+            return "";
+        }
+
+        if (oncePerSession) {
+            campaignId = this.filterTransmittedCampaigns(campaignId);
+        }
+
+        return campaignId;
+    }
+
+    /**
+     * Returns the cookie that carries the campaigns already transmitted in this session, or null if
+     * nothing changed. Add it to the HTTP response, otherwise "once per session" cannot work across
+     * requests.
+     *
+     * <p>Deliberately not HttpOnly: the client-side pixel reads the same cookie. It is a session
+     * cookie, which mirrors the client-side behaviour.</p>
+     *
+     * @return MappIntelligenceCookie
+     */
+    public final MappIntelligenceCookie getTransmittedCampaignsCookie() {
+        if (!this.transmittedCampaignsUpdated) {
+            return null;
+        }
+
+        List<String> campaigns = new ArrayList<>(this.transmittedCampaigns);
+        while (campaigns.size() > 1
+            && URLString.encode(String.join(";", campaigns)).length() > MAX_TRANSMITTED_CAMPAIGNS_LENGTH) {
+            campaigns.remove(0);
+        }
+
+        // the value has to be URL encoded: MappIntelligenceConfig.addCookie() decodes incoming
+        // cookie values, so without encoding the "%3D" inside a campaign ID would not survive the
+        // round trip and an already transmitted campaign would never be recognised again
+        MappIntelligenceCookie cookie = new MappIntelligenceServerCookie(
+            MappIntelligenceParameter.TRANSMITTED_CAMPAIGNS_COOKIE_NAME,
+            URLString.encode(String.join(";", campaigns))
+        );
+        cookie.setMaxAge(-1);
+        cookie.setPath("/");
+        // a Secure cookie is neither stored nor sent on plain HTTP pages, and "once per session"
+        // would silently never work there
+        cookie.setSecure(this.isSecureRequest());
+        cookie.setHttpOnly(false);
+
+        return cookie;
+    }
+
+    /**
+     * @return false only if the request URL is known to be plain HTTP
+     */
+    private boolean isSecureRequest() {
+        return this.requestURL == null || !"http".equalsIgnoreCase(this.requestURL.getProtocol());
+    }
+
+    /**
      * @return string
      */
     protected final String getEverId() {
@@ -416,12 +635,23 @@ class MappIntelligenceEnrichment {
      * @return MappIntelligenceCookie
      */
     public final MappIntelligenceCookie getUserIdCookie(String pixelVersion, String context) {
+        synchronized (this.everIdLock) {
+            return this.createUserIdCookie(pixelVersion, context);
+        }
+    }
+
+    /**
+     * @param pixelVersion Version ot the current pixel (v4, v5, smart)
+     * @param context      Cookie context (1st, 3rd)
+     * @return MappIntelligenceCookie
+     */
+    private MappIntelligenceCookie createUserIdCookie(String pixelVersion, String context) {
         MappIntelligenceCookie c = null;
 
         if (this.everId.isEmpty()) {
             this.everId = this.generateUserId();
 
-            if (context.equals(MappIntelligence.SERVER_SIDE_COOKIE)) {
+            if (MappIntelligence.SERVER_SIDE_COOKIE.equals(context)) {
                 if (this.isOwnTrackDomain()) {
                     String[] cookieDomain = this.trackDomain.split("\\.", 2);
 
@@ -429,13 +659,13 @@ class MappIntelligenceEnrichment {
                     c = this.setUserIdCookie(MappIntelligenceParameter.SERVER_COOKIE_NAME_PREFIX + this.trackId, "", cookieDomain[1]);
                 }
             } else {
-                if (pixelVersion.equals(MappIntelligence.V4) || pixelVersion.equals(MappIntelligence.V5)) {
+                if (MappIntelligence.V4.equals(pixelVersion) || MappIntelligence.V5.equals(pixelVersion)) {
                     String cookieValue = this.getCookieValue(MappIntelligenceParameter.PIXEL_COOKIE_NAME);
                     cookieValue += String.format(";%s|%s", this.trackId, this.everId);
                     c = this.setUserIdCookie(cookieValue);
                 }
 
-                if (pixelVersion.equals(MappIntelligence.SMART)) {
+                if (MappIntelligence.SMART.equals(pixelVersion)) {
                     c = this.setUserIdCookie();
                 }
             }

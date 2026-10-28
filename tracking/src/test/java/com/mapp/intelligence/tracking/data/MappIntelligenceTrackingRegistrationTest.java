@@ -19,6 +19,9 @@ public class MappIntelligenceTrackingRegistrationTest {
         assertEquals("", data.get("lastName"));
         assertEquals("", data.get("gender"));
         assertEquals("", data.get("title"));
+        assertEquals("", data.get("isoCode"));
+        assertEquals("", data.get("isoLanguage"));
+        assertEquals("", data.get("timezone"));
         assertEquals(false, data.get("optIn"));
     }
 
@@ -86,6 +89,33 @@ public class MappIntelligenceTrackingRegistrationTest {
     }
 
     @Test
+    public void testSetIsoCode() {
+        MappIntelligenceRegistration registration = new MappIntelligenceRegistration();
+        registration.setIsoCode("DE");
+
+        Map<String, Object> data = registration.getData();
+        assertEquals("DE", data.get("isoCode"));
+    }
+
+    @Test
+    public void testSetIsoLanguage() {
+        MappIntelligenceRegistration registration = new MappIntelligenceRegistration();
+        registration.setIsoLanguage("de");
+
+        Map<String, Object> data = registration.getData();
+        assertEquals("de", data.get("isoLanguage"));
+    }
+
+    @Test
+    public void testSetTimezone() {
+        MappIntelligenceRegistration registration = new MappIntelligenceRegistration();
+        registration.setTimezone("Europe/Berlin");
+
+        Map<String, Object> data = registration.getData();
+        assertEquals("Europe/Berlin", data.get("timezone"));
+    }
+
+    @Test
     public void testGetQueryParameterWithoutOptIn() {
         MappIntelligenceRegistration registration = new MappIntelligenceRegistration();
         registration.setEmail("foo@bar.com")
@@ -94,7 +124,10 @@ public class MappIntelligenceTrackingRegistrationTest {
             .setFirstName("foo")
             .setLastName("bar")
             .setGender("m")
-            .setTitle("Professor");
+            .setTitle("Professor")
+            .setIsoCode("DE")
+            .setIsoLanguage("de")
+            .setTimezone("Europe/Berlin");
 
         Map<String, String> queryParams = registration.getQueryParameter();
         assertEquals(0, queryParams.size());
@@ -110,6 +143,9 @@ public class MappIntelligenceTrackingRegistrationTest {
             .setLastName("bar")
             .setGender("m")
             .setTitle("Professor")
+            .setIsoCode("DE")
+            .setIsoLanguage("de")
+            .setTimezone("Europe/Berlin")
             .setOptIn(true);
 
         Map<String, String> queryParams = registration.getQueryParameter();
@@ -121,6 +157,9 @@ public class MappIntelligenceTrackingRegistrationTest {
         assertEquals("bar", queryParams.get("er5"));
         assertEquals("m", queryParams.get("er6"));
         assertEquals("Professor", queryParams.get("er7"));
+        assertEquals("DE", queryParams.get("er8"));
+        assertEquals("de", queryParams.get("er9"));
+        assertEquals("Europe/Berlin", queryParams.get("er10"));
     }
 
     @Test

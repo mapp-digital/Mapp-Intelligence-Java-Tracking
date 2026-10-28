@@ -2,10 +2,13 @@ version: "3.3"
 
 services:
   java:
-    image: openjdk:${JAVA_VERSION}
+    # Ubuntu 22.04 (jammy) base: the newer Ubuntu base of the default tags needs syscalls that older
+    # Docker engines block (tar fails with "Function not implemented")
+    image: eclipse-temurin:${JAVA_VERSION}-jdk-jammy
     working_dir: /app
     environment:
       BUILD_TYPE: ${BUILD_TYPE}
+      STRESS_ARGS: ${STRESS_ARGS}
       USER_ID: ${USER_ID}
       GROUP_ID: ${GROUP_ID}
     volumes:

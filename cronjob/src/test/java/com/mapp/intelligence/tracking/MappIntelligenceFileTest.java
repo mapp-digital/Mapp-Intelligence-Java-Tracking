@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -21,6 +22,7 @@ public class MappIntelligenceFileTest {
     @After
     public void restoreStreams() {
         MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, TEMPORARY_FILE_EXTENSION);
+        MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, ".lock");
         MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, LOG_FILE_EXTENSION);
     }
 
@@ -93,11 +95,54 @@ public class MappIntelligenceFileTest {
 
     @Test
     public void testGetFileContent() {
+        // a file that cannot be read is no empty file: an empty file is deleted by the cron job
         try {
             MappIntelligenceFile.getFileContent(null);
-            assertTrue(true);
-        } catch (Exception e) {
             fail();
+        } catch (IOException e) {
+            assertTrue(true);
+        }
+
+        try {
+            MappIntelligenceFile.getFileContent(new File("/nonexistent/file.log"));
+            fail();
+        } catch (IOException e) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testCheckTemporaryFilesUsesMaxFileDuration() {
+        String recentFile = FILE_PATH + FILE_PREFIX + "-" + (System.currentTimeMillis() - 60 * 1000) + TEMPORARY_FILE_EXTENSION;
+        MappIntelligenceUnitUtil.createFile(recentFile);
+
+        // one minute old: not expired with the default of 30 minutes, expired with 30 seconds
+        assertFalse(MappIntelligenceFile.checkTemporaryFiles(FILE_PATH, FILE_PREFIX));
+        assertTrue(MappIntelligenceFile.checkTemporaryFiles(FILE_PATH, FILE_PREFIX, 30 * 1000));
+    }
+
+    @Test
+    public void testDeleteFileReportsResult() {
+        String logFile = FILE_PATH + FILE_PREFIX + "-1400000000000" + LOG_FILE_EXTENSION;
+        MappIntelligenceUnitUtil.createFile(logFile);
+
+        assertTrue(MappIntelligenceFile.deleteFile(new File(logFile)));
+        assertFalse(MappIntelligenceFile.deleteFile(new File(logFile)));
+        assertFalse(MappIntelligenceFile.deleteFile(null));
+    }
+
+    @Test
+    public void testMarkAsSent() throws Exception {
+        String logFile = FILE_PATH + FILE_PREFIX + "-1400000000000" + LOG_FILE_EXTENSION;
+        MappIntelligenceUnitUtil.createFile(logFile);
+
+        File sentFile = MappIntelligenceFile.markAsSent(new File(logFile));
+        try {
+            assertEquals(FILE_PREFIX + "-1400000000000.log.sent", sentFile.getName());
+            // a sent file is no longer picked up
+            assertEquals(0, MappIntelligenceFile.getLogFiles(FILE_PATH, FILE_PREFIX).length);
+        } finally {
+            MappIntelligenceFile.deleteFile(sentFile);
         }
     }
 }

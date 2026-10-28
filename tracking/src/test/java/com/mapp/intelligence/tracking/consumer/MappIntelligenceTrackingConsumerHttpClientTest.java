@@ -100,7 +100,7 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
     }
 
     @Test
-    public void testBatchRequestResponding200ViaHttp() {
+    public void testForceSSLFalseIsIgnored() {
         Map<String, Object> config = new HashMap<>();
         config.put("trackId", "123451234512345");
         config.put("trackDomain", "analytics01.wt-eu02.net");
@@ -109,11 +109,15 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
         config.put("forceSSL", false);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
+        // with plain HTTP the session ID callback threw a ClassCastException after the batch was sent,
+        // so the batch was reported as failed and sent again
+        consumer.setOnSessionId(sessionId -> { });
+
         List<String> data = new ArrayList<>();
         data.add("wt?p=300,0");
         assertTrue(consumer.sendBatch(data));
 
-        assertTrue(this.outContent.toString().contains("Send batch data to http://analytics01.wt-eu02.net/123451234512345/batch (1 req.)"));
+        assertTrue(this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/123451234512345/batch (1 req.)"));
         assertTrue(this.outContent.toString().contains("Batch request responding the status code 200"));
     }
 
@@ -128,11 +132,34 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
 
         List<String> data = new ArrayList<>();
         data.add("wt?p=300,0");
-        assertFalse(consumer.sendBatch(data));
+        // 404 is a permanent client error: the batch is dropped, not requeued
+        assertTrue(consumer.sendBatch(data));
 
         assertTrue(this.outContent.toString().contains("Send batch data to https://analytics01.wt-eu02.net/111111111111111/batch (1 req.)"));
         assertTrue(this.outContent.toString().contains("Batch request responding the status code 404"));
         assertTrue(this.outContent.toString().contains("HTTP Status 404"));
+        assertTrue(this.outContent.toString().contains("Discarding a batch of 1 req. after HTTP status 404"));
+    }
+
+    @Test
+    public void testRetryableHttpStatus() {
+        // server errors are temporary and worth another attempt
+        assertTrue(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(500));
+        assertTrue(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(502));
+        assertTrue(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(503));
+        assertTrue(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(504));
+
+        // these two client errors explicitly ask for a retry
+        assertTrue(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(408));
+        assertTrue(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(429));
+
+        // every other client error is permanent - retrying sends the identical request forever
+        assertFalse(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(400));
+        assertFalse(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(401));
+        assertFalse(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(403));
+        assertFalse(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(404));
+        assertFalse(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(413));
+        assertFalse(MappIntelligenceConsumerHttpClient.isRetryableHttpStatus(422));
     }
 
     @Test
@@ -142,8 +169,10 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
         config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
-        assertFalse(consumer.sendBatch(contentMaxBatchSize));
+        // an oversized batch can never be sent: it is dropped instead of blocking the queue forever
+        assertTrue(consumer.sendBatch(contentMaxBatchSize));
         assertTrue(this.outContent.toString().contains("Batch size is larger than 10000 req. (11000 req.)"));
+        assertTrue(this.outContent.toString().contains("Discarding a batch of 11000 req. that can never be sent"));
     }
 
     @Test
@@ -153,8 +182,10 @@ public class MappIntelligenceTrackingConsumerHttpClientTest {
         config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerHttpClient consumer = new MappIntelligenceConsumerHttpClient(config);
 
-        assertFalse(consumer.sendBatch(maxPayloadSize));
+        // an oversized payload can never be sent: it is dropped instead of blocking the queue forever
+        assertTrue(consumer.sendBatch(maxPayloadSize));
         assertTrue(this.outContent.toString().contains("Payload size is larger than 24MB (34.7MB)"));
+        assertTrue(this.outContent.toString().contains("Discarding a batch of 9000 req. that can never be sent"));
     }
 
     @Test

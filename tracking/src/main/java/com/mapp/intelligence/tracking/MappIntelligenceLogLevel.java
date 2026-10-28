@@ -41,6 +41,10 @@ public class MappIntelligenceLogLevel {
      * @return int Integer log level
      */
     public static int getValue(String ll) {
+        if (ll == null) {
+            return -1;
+        }
+
         String logLvl = ll.toUpperCase();
 
         Field[] declaredFields = MappIntelligenceLogLevel.class.getDeclaredFields();

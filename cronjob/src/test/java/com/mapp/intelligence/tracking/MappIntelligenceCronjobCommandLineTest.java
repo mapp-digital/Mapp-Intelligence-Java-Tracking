@@ -1,12 +1,12 @@
 package com.mapp.intelligence.tracking;
 
 import java.io.File;
-import java.security.Permission;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class MappIntelligenceCronjobCommandLineTest {
     private static final String FILE_PATH = System.getProperty("user.dir") + "/src/test/resources/";
@@ -15,72 +15,52 @@ public class MappIntelligenceCronjobCommandLineTest {
     private static final String LOG_FILE_EXTENSION = ".log";
     private static final String CONFIG_FILE = FILE_PATH + "config_test.properties";
 
-    protected static class ExitException extends SecurityException {
-        public final int status;
-        public ExitException(int status) {
-            super("There is no escape!");
-            this.status = status;
-        }
-    }
-
-    private static class NoExitSecurityManager extends SecurityManager {
-        @Override
-        public void checkPermission(Permission perm) {
-            // allow anything.
-        }
-
-        @Override
-        public void checkPermission(Permission perm, Object context) {
-            // allow anything.
-        }
-
-        @Override
-        public void checkExit(int status) {
-            super.checkExit(status);
-            throw new ExitException(status);
-        }
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        System.setSecurityManager(new NoExitSecurityManager());
-    }
-
     @After
     public void tearDown() throws Exception {
         MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, TEMPORARY_FILE_EXTENSION);
+        MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, ".lock");
         MappIntelligenceUnitUtil.deleteFiles(FILE_PATH, FILE_PREFIX, LOG_FILE_EXTENSION);
-
-        System.setSecurityManager(null); // or save and restore original
     }
 
     @Test
     public void testConstructor() {
-        try {
-            new MappIntelligenceCronjobCommandLine();
-        } catch (ExitException e) {
-            assertEquals(1, e.status);
-        }
+        assertNotNull(new MappIntelligenceCronjobCommandLine());
     }
 
     @Test
     public void testMappIntelligenceCronjobCommandLine1() {
-        try {
-            MappIntelligenceCronjobCommandLine.main(new String[0]);
-        } catch (ExitException e) {
-            assertEquals(1, e.status);
-        }
+        // without track ID and track domain the configuration is invalid
+        assertEquals(1, MappIntelligenceCronjobCommandLine.execute(new String[0]));
     }
 
     @Test
     public void testMappIntelligenceCronjobCommandLine2() {
         String[] args = ("-c " + CONFIG_FILE + " -f " + FILE_PATH + " -p " + FILE_PREFIX).split(" ");
 
-        try {
-            MappIntelligenceCronjobCommandLine.main(args);
-        } catch (ExitException e) {
-            assertEquals(1, e.status);
-        }
+        // no log files to send is not an error
+        assertEquals(0, MappIntelligenceCronjobCommandLine.execute(args));
+    }
+
+    @Test
+    public void testHelpExitsSuccessfully() {
+        // without track ID and track domain, the help is printed and nothing else is done
+        assertEquals(0, MappIntelligenceCronjobCommandLine.execute(new String[] {"--help"}));
+    }
+
+    @Test
+    public void testVersionExitsSuccessfully() {
+        assertEquals(0, MappIntelligenceCronjobCommandLine.execute(new String[] {"--version"}));
+    }
+
+    @Test
+    public void testVersionDoesNotSend() {
+        File file = MappIntelligenceUnitUtil.createFile(FILE_PATH + FILE_PREFIX + "-1400000000000" + LOG_FILE_EXTENSION);
+        MappIntelligenceUnitUtil.writeToFile(file.getAbsolutePath(), "p=400,0\n");
+
+        String[] args = ("-c " + CONFIG_FILE + " -f " + FILE_PATH + " -p " + FILE_PREFIX + " --version").split(" ");
+
+        assertEquals(0, MappIntelligenceCronjobCommandLine.execute(args));
+        assertTrue(file.exists());
     }
 
     @Test
@@ -90,10 +70,6 @@ public class MappIntelligenceCronjobCommandLineTest {
 
         String[] args = ("-c " + CONFIG_FILE + " -f " + FILE_PATH + " -p " + FILE_PREFIX).split(" ");
 
-        try {
-            MappIntelligenceCronjobCommandLine.main(args);
-        } catch (ExitException e) {
-            assertEquals(0, e.status);
-        }
+        assertEquals(0, MappIntelligenceCronjobCommandLine.execute(args));
     }
 }

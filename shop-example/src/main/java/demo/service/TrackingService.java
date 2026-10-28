@@ -42,7 +42,7 @@ class CustomLogger implements MappIntelligenceLogger {
  * @author Mapp Digital c/o Webtrekk GmbH
  * @version 0.0.1
  */
-public class TrackingService {
+public class TrackingService implements AutoCloseable {
     private final HttpServletRequest request;
     private final HttpServletResponse response;
     private final MappIntelligenceTracking mappIntelligenceTracking;
@@ -70,7 +70,8 @@ public class TrackingService {
             .setRequestURL(this.request.getRequestURL().toString())
             .setRemoteAddress(this.request.getRemoteAddr())
             .setUserAgent(this.request.getHeader("User-Agent"))
-            .setClientHintUserAgentModel(this.request.getHeader("sec-ch-ua-mobile"))
+            .setClientHintUserAgentModel(this.request.getHeader("sec-ch-ua-model"))
+            .setClientHintUserAgentMobile(this.request.getHeader("sec-ch-ua-mobile"))
             .setClientHintUserAgentFullVersionList(this.request.getHeader("sec-ch-ua-full-version-list"));
 
         Cookie[] cookies = this.request.getCookies();
@@ -147,6 +148,16 @@ public class TrackingService {
 
     public void addProduct(Product product, int qty) {
         this.trackProduct(product, MappIntelligenceProduct.BASKET, qty);
+    }
+
+    /**
+     * Releases the tracking resources. The tracking instance carries the data of this request, so it
+     * is created per request and has to be closed per request - otherwise its thread pools and file
+     * handles stay alive until the JVM terminates.
+     */
+    @Override
+    public void close() {
+        this.mappIntelligenceTracking.close();
     }
 
     public void track() {

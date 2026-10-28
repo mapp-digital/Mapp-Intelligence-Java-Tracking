@@ -6,6 +6,8 @@ import java.util.Map;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("unchecked")
 public class MappIntelligenceTrackingEngageTest {
@@ -103,5 +105,78 @@ public class MappIntelligenceTrackingEngageTest {
         Map<String, String> queryParams = engage.getQueryParameter();
 
         assertEquals(0, queryParams.size());
+    }
+
+    @Test
+    public void testAttributeValuesAreJSONEscaped() {
+        MappIntelligenceEngage engage = new MappIntelligenceEngage();
+        Map<String, Object> attrs = new HashMap<>();
+        attrs.put("quote", "say \"hi\"");
+
+        engage.setAttributes(attrs);
+
+        assertEquals("{\"quote\":\"say \\\"hi\\\"\"}", engage.getData().get("attributes"));
+    }
+
+    @Test
+    public void testAttributeKeysAndControlCharactersAreJSONEscaped() {
+        MappIntelligenceEngage engage = new MappIntelligenceEngage();
+        Map<String, Object> attrs = new HashMap<>();
+        attrs.put("back\\slash", "line1\nline2\ttabbed");
+
+        engage.setAttributes(attrs);
+
+        assertEquals(
+            "{\"back\\\\slash\":\"line1\\nline2\\ttabbed\"}",
+            engage.getData().get("attributes")
+        );
+    }
+
+    @Test
+    public void testAttributeInjectionIsNotPossible() {
+        MappIntelligenceEngage engage = new MappIntelligenceEngage();
+        Map<String, Object> attrs = new HashMap<>();
+        // without escaping this would smuggle a second, forged field into the JSON
+        attrs.put("foo", "bar\",\"injected\":\"yes");
+
+        engage.setAttributes(attrs);
+
+        String json = (String) engage.getData().get("attributes");
+        assertFalse(json.contains("\",\"injected\":\"yes\""));
+        assertEquals("{\"foo\":\"bar\\\",\\\"injected\\\":\\\"yes\"}", json);
+    }
+
+    @Test
+    public void testAttributeAcceptsAllUsableTypes() {
+        MappIntelligenceEngage engage = new MappIntelligenceEngage();
+        Map<String, Object> attrs = new HashMap<>();
+        attrs.put("bool", Boolean.TRUE);
+        attrs.put("long", 42L);
+        attrs.put("double", 12.5);
+        attrs.put("decimal", new java.math.BigDecimal("19.99"));
+
+        engage.setAttributes(attrs);
+
+        String json = (String) engage.getData().get("attributes");
+        assertTrue(json.contains("\"bool\":\"true\""));
+        assertTrue(json.contains("\"long\":\"42\""));
+        assertTrue(json.contains("\"double\":\"12.5\""));
+        assertTrue(json.contains("\"decimal\":\"19.99\""));
+    }
+
+    @Test
+    public void testAttributeDropsUnrepresentableValues() {
+        MappIntelligenceEngage engage = new MappIntelligenceEngage();
+        Map<String, Object> attrs = new HashMap<>();
+        attrs.put("nan", Double.NaN);
+        attrs.put("posInf", Double.POSITIVE_INFINITY);
+        attrs.put("negInf", Double.NEGATIVE_INFINITY);
+        attrs.put("nanFloat", Float.NaN);
+        attrs.put("nullValue", null);
+        attrs.put("emptyString", "");
+
+        engage.setAttributes(attrs);
+
+        assertEquals("{}", engage.getData().get("attributes"));
     }
 }

@@ -19,6 +19,16 @@ public class URLStringTest {
     }
 
     @Test
+    public void testDecodeInvalidPercentEncoding() {
+        // client-controlled values may contain a bare "%" - decode must not throw
+        assertEquals("100%ok", URLString.decode("100%ok"));
+        assertEquals("Mozilla/5.0 (X11; 100% CPU)", URLString.decode("Mozilla/5.0 (X11; 100% CPU)"));
+        assertEquals("a%", URLString.decode("a%"));
+        assertEquals("a%2", URLString.decode("a%2"));
+        assertEquals("a%zz", URLString.decode("a%zz"));
+    }
+
+    @Test
     public void testEncode() {
         assertEquals("", URLString.encode(""));
         assertEquals("", URLString.encode(null));
@@ -80,5 +90,19 @@ public class URLStringTest {
         String id = URLString.getQueryParam("https://localhost/wt?eid=123456789", "eid");
 
         assertEquals("123456789", id);
+    }
+
+    @Test
+    public void testGetQueryParamWithEqualsInValue() {
+        // base64 and media codes carry "=" in the value and must not be dropped
+        assertEquals("YWJjZA==", URLString.getQueryParam("https://localhost/wt?eid=YWJjZA==", "eid"));
+        assertEquals("a=b=c", URLString.getQueryParam("https://localhost/wt?x=a=b=c&eid=1", "x"));
+        assertEquals("1", URLString.getQueryParam("https://localhost/wt?x=a=b=c&eid=1", "eid"));
+    }
+
+    @Test
+    public void testGetQueryParamWithValuelessParameter() {
+        assertEquals("1", URLString.getQueryParam("https://localhost/wt?foo&eid=1", "eid"));
+        assertEquals("", URLString.getQueryParam("https://localhost/wt?foo&eid=1", "foo"));
     }
 }

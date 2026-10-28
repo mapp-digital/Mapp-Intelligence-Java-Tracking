@@ -5,7 +5,7 @@ import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerType;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -26,6 +26,10 @@ class MappIntelligenceConfigProperties {
      */
     MappIntelligenceConfigProperties(String propertyFile) {
         this.prop = new Properties();
+
+        if (propertyFile == null) {
+            return;
+        }
 
         try (InputStream inputStream = new FileInputStream(propertyFile)) {
             if (propertyFile.endsWith(".xml")) {
@@ -82,7 +86,16 @@ class MappIntelligenceConfigProperties {
     public int getIntegerProperty(String propertyName, int defaultValue) {
         String propertyValue = this.getProperty(propertyName);
 
-        return ((propertyValue.matches("^\\d+$")) ? Integer.parseInt(propertyValue) : defaultValue);
+        if (!propertyValue.matches("^\\d+$")) {
+            return defaultValue;
+        }
+
+        try {
+            return Integer.parseInt(propertyValue);
+        } catch (NumberFormatException e) {
+            // larger than Integer.MAX_VALUE
+            return defaultValue;
+        }
     }
 
     /**
@@ -124,16 +137,20 @@ class MappIntelligenceConfigProperties {
      * @param defaultValue Default value for the property
      * @param splitTerm Value for string splitting
      *
-     * @return MappIntelligenceConsumer
+     * @return Modifiable list of the trimmed, non-empty entries, or the default value if there is none
      */
     public List<String> getListProperty(String propertyName, List<String> defaultValue, String splitTerm) {
-        List<String> listValue = defaultValue;
-        String propertyValue = this.getProperty(propertyName);
+        List<String> listValue = new ArrayList<>();
 
-        if (!propertyValue.isEmpty()) {
-            listValue = Arrays.asList(propertyValue.split(splitTerm));
+        for (String entry : this.getProperty(propertyName).split(splitTerm)) {
+            // "a, b" means "b", not " b", and "a;;b" must not add an empty entry, which as an
+            // include filter would match every URL
+            String trimmed = entry.trim();
+            if (!trimmed.isEmpty()) {
+                listValue.add(trimmed);
+            }
         }
 
-        return listValue;
+        return (!listValue.isEmpty()) ? listValue : defaultValue;
     }
 }

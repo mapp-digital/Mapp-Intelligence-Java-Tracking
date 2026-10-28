@@ -55,6 +55,8 @@ public class MappIntelligenceTrackingConsumerFileTest {
         System.setOut(this.originalOut);
 
         MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".tmp");
+
+        MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".lock");
         MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".log");
     }
 
@@ -67,7 +69,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         new MappIntelligenceConsumerFile(config);
 
-        assertTrue(this.outContent.toString().contains("java.io.IOException"));
+        assertTrue(this.outContent.toString().contains("NoSuchFileException"));
     }
 
     @Test
@@ -82,7 +84,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         List<String> data = new ArrayList<>();
         data.add("wt?p=300,0");
         assertFalse(consumer.sendBatch(data));
-        assertTrue(this.outContent.toString().contains("java.io.IOException"));
+        assertTrue(this.outContent.toString().contains("NoSuchFileException"));
     }
 
     @Test
@@ -94,8 +96,10 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
-        assertFalse(consumer.sendBatch(contentMaxBatchSize));
+        // an oversized batch can never be sent: it is dropped instead of blocking the queue forever
+        assertTrue(consumer.sendBatch(contentMaxBatchSize));
         assertTrue(this.outContent.toString().contains("Batch size is larger than 10000 req. (11000 req.)"));
+        assertTrue(this.outContent.toString().contains("Discarding a batch of 11000 req. that can never be sent"));
     }
 
     @Test
@@ -107,8 +111,10 @@ public class MappIntelligenceTrackingConsumerFileTest {
         config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
-        assertFalse(consumer.sendBatch(maxPayloadSize));
+        // an oversized payload can never be sent: it is dropped instead of blocking the queue forever
+        assertTrue(consumer.sendBatch(maxPayloadSize));
         assertTrue(this.outContent.toString().contains("Payload size is larger than 24MB (34.7MB)"));
+        assertTrue(this.outContent.toString().contains("Discarding a batch of 9000 req. that can never be sent"));
     }
 
     @Test
@@ -123,8 +129,7 @@ public class MappIntelligenceTrackingConsumerFileTest {
         MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
 
         try {
-            FileWriter fileWriter = MappIntelligenceUnitUtil.getFileWriter(consumer);
-            fileWriter.close();
+            MappIntelligenceUnitUtil.getFileChannel(consumer).close();
         } catch (IOException e) {
             // do nothing
         }
@@ -132,8 +137,12 @@ public class MappIntelligenceTrackingConsumerFileTest {
         List<String> data = new ArrayList<>();
         data.add("wt?p=300,0");
 
+        // the closed file is opened again before the next write, nothing is lost
         assertTrue(consumer.sendBatch(data));
-        assertTrue(this.outContent.toString().contains("IOException"));
+        assertTrue(MappIntelligenceUnitUtil
+            .getFileContent(this.tempFilePath, this.tempFilePrefix, ".tmp")
+            .contains("wt?p=300,0"));
+        consumer.close();
     }
 
     @Test
@@ -429,5 +438,214 @@ public class MappIntelligenceTrackingConsumerFileTest {
 
         assertEquals(1, tmp.length);
         assertEquals(24, log.length);
+    }
+
+    @Test
+    public void testConcurrentSendBatchFromMultipleQueueThreads() throws Exception {
+        final int threads = 8;
+        final int batchesPerThread = 250;
+        final int expectedLines = threads * batchesPerThread;
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("filePath", this.tempFilePath);
+        config.put("filePrefix", this.tempFilePrefix);
+        config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.ERROR);
+        // low line limit so the threads race on file rotation, not just on the writer
+        config.put("maxFileLines", 100);
+        config.put("maxFileDuration", 30 * 60 * 1000);
+        config.put("maxFileSize", 24 * 1024 * 1024);
+
+        final MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
+
+        final java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(threads);
+        final List<Throwable> failures = java.util.Collections.synchronizedList(new ArrayList<Throwable>());
+
+        for (int t = 0; t < threads; t++) {
+            final int threadId = t;
+            Thread worker = new Thread(() -> {
+                try {
+                    start.await();
+                    for (int i = 0; i < batchesPerThread; i++) {
+                        List<String> batch = new ArrayList<>();
+                        batch.add(String.format("wt?p=300,0&thread=%d&i=%d", threadId, i));
+                        assertTrue(consumer.sendBatch(batch));
+                    }
+                } catch (Throwable e) {
+                    failures.add(e);
+                } finally {
+                    done.countDown();
+                }
+            });
+            worker.start();
+        }
+
+        start.countDown();
+        assertTrue("workers did not finish in time", done.await(60, java.util.concurrent.TimeUnit.SECONDS));
+        consumer.close();
+
+        assertEquals("worker threads reported failures: " + failures, 0, failures.size());
+
+        List<String> written = new ArrayList<>();
+        written.addAll(this.readAllLines(".tmp"));
+        written.addAll(this.readAllLines(".log"));
+
+        Set<String> expected = new HashSet<>();
+        for (int t = 0; t < threads; t++) {
+            for (int i = 0; i < batchesPerThread; i++) {
+                expected.add(String.format("wt?p=300,0&thread=%d&i=%d", t, i));
+            }
+        }
+
+        // no line may be lost, duplicated or interleaved with another thread's line
+        assertEquals(expectedLines, written.size());
+        assertEquals(expected, new HashSet<>(written));
+    }
+
+    /**
+     * @param extension File extension to read
+     * @return All non-empty lines of all matching files
+     */
+    private List<String> readAllLines(String extension) throws IOException {
+        return this.readAllLines(this.tempFilePrefix, extension);
+    }
+
+    /**
+     * @param prefix File prefix
+     * @param extension File extension to read
+     * @return All non-empty lines of all matching files
+     */
+    private List<String> readAllLines(String prefix, String extension) throws IOException {
+        List<String> lines = new ArrayList<>();
+        File dir = new File(this.tempFilePath);
+        FilenameFilter filter = (f, name) -> name.startsWith(prefix) && name.endsWith(extension);
+        File[] files = dir.listFiles(filter);
+
+        if (files == null) {
+            return lines;
+        }
+
+        for (File file : files) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.isEmpty()) {
+                        lines.add(line);
+                    }
+                }
+            }
+        }
+
+        return lines;
+    }
+
+    @Test
+    public void testWriteErrorIsReportedAsFailure() throws Exception {
+        Map<String, Object> config = new HashMap<>();
+        config.put("filePath", this.tempFilePath);
+        config.put("filePrefix", this.tempFilePrefix);
+        config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
+        MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
+
+        // replace the channel with one of the same file that cannot be written, like a full disk
+        Object sharedFile = MappIntelligenceUnitUtil.getSharedFile(consumer);
+        java.lang.reflect.Field fileField = sharedFile.getClass().getDeclaredField("file");
+        fileField.setAccessible(true);
+        java.lang.reflect.Field channelField = sharedFile.getClass().getDeclaredField("channel");
+        channelField.setAccessible(true);
+        ((java.nio.channels.FileChannel) channelField.get(sharedFile)).close();
+        channelField.set(sharedFile, java.nio.channels.FileChannel.open(
+            (java.nio.file.Path) fileField.get(sharedFile),
+            java.nio.file.StandardOpenOption.READ
+        ));
+
+        List<String> data = new ArrayList<>();
+        data.add("wt?p=300,0");
+
+        // the batch is lost unless sendBatch reports the failure, so the scheduler can requeue it
+        assertFalse(consumer.sendBatch(data));
+        assertTrue(this.outContent.toString().contains("The file is not writable"));
+
+        // a failed write must not count towards the rotation limit
+        java.lang.reflect.Field currentFileLinesField = sharedFile.getClass().getDeclaredField("currentFileLines");
+        currentFileLinesField.setAccessible(true);
+        assertEquals(0L, currentFileLinesField.getLong(sharedFile));
+
+        consumer.close();
+    }
+
+    @Test
+    public void testConsumersForSameFileShareOneFile() throws Exception {
+        Map<String, Object> config = new HashMap<>();
+        config.put("filePath", this.tempFilePath);
+        // own prefix: consumers of other tests that were not closed would share the file otherwise
+        String prefix = this.tempFilePrefix + "_shared";
+        config.put("filePrefix", prefix);
+        config.put("maxFileLines", 4);
+        config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
+
+        // one tracking instance per request: several consumers for the same file at the same time
+        MappIntelligenceConsumerFile first = new MappIntelligenceConsumerFile(config);
+        MappIntelligenceConsumerFile second = new MappIntelligenceConsumerFile(config);
+        assertTrue(MappIntelligenceUnitUtil.getSharedFile(first) == MappIntelligenceUnitUtil.getSharedFile(second));
+
+        for (int i = 0; i < 3; i++) {
+            assertTrue(first.sendBatch(Collections.singletonList("wt?p=300,first" + i)));
+            assertTrue(second.sendBatch(Collections.singletonList("wt?p=300,second" + i)));
+        }
+
+        // closing one consumer must not close the file for the other one
+        first.close();
+        first.close();
+        assertFalse(first.sendBatch(Collections.singletonList("wt?p=300,closed")));
+        assertTrue(second.sendBatch(Collections.singletonList("wt?p=300,last")));
+        assertTrue(MappIntelligenceUnitUtil.getFileChannel(second) != null);
+
+        second.close();
+        assertTrue(MappIntelligenceUnitUtil.getFileChannel(second) == null);
+
+        // one line counter for all consumers: the limit of 4 lines per file is kept, nothing is lost
+        List<String> logLines = this.readAllLines(prefix, ".log");
+        List<String> tmpLines = this.readAllLines(prefix, ".tmp");
+        assertEquals(4, logLines.size());
+        assertEquals(3, tmpLines.size());
+        assertTrue(tmpLines.contains("wt?p=300,last"));
+        assertFalse(logLines.contains("wt?p=300,closed") || tmpLines.contains("wt?p=300,closed"));
+    }
+
+    @Test
+    public void testConsumerReopensFileRemovedFromOutside() throws Exception {
+        Map<String, Object> config = new HashMap<>();
+        config.put("filePath", this.tempFilePath);
+        config.put("filePrefix", this.tempFilePrefix);
+        config.put("logger", MappIntelligenceUnitUtil.getCustomLogger());
+        config.put("logLevel", MappIntelligenceLogLevel.DEBUG);
+        MappIntelligenceConsumerFile consumer = new MappIntelligenceConsumerFile(config);
+
+        assertTrue(consumer.sendBatch(Collections.singletonList("wt?p=300,before")));
+
+        // the cron job renames an expired temporary file into a log file and deletes it after sending
+        MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".tmp");
+        MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".lock");
+
+        assertTrue(consumer.sendBatch(Collections.singletonList("wt?p=300,after")));
+        assertEquals(Collections.singletonList("wt?p=300,after"), this.readAllLines(".tmp"));
+
+        consumer.close();
+    }
+
+    @Test
+    public void testAFileBelongsToAPrefixWithTheTimestampAfterTheSeparator() {
+        assertTrue(MappIntelligenceConsumerFile.isFileOfPrefix("Shop-1000.abcdef01.log", "Shop", ".log"));
+        assertTrue(MappIntelligenceConsumerFile.isFileOfPrefix("Shop-1000.log", "Shop", ".log"));
+        assertFalse(MappIntelligenceConsumerFile.isFileOfPrefix("Shop-1000.abcdef01.tmp", "Shop", ".log"));
+        assertFalse(MappIntelligenceConsumerFile.isFileOfPrefix("ShopDE-1000.abcdef01.log", "Shop", ".log"));
+        assertFalse(MappIntelligenceConsumerFile.isFileOfPrefix("Shop-DE-1000.abcdef01.log", "Shop", ".log"));
+        assertFalse(MappIntelligenceConsumerFile.isFileOfPrefix("Shop-2024-1000.abcdef01.log", "Shop", ".log"));
+        assertFalse(MappIntelligenceConsumerFile.isFileOfPrefix("Shop-.log", "Shop", ".log"));
+        assertTrue(MappIntelligenceConsumerFile.isFileOfPrefix("Shop-DE-1000.abcdef01.log", "Shop-DE", ".log"));
     }
 }

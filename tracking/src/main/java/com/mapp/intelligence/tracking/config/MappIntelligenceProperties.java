@@ -32,6 +32,10 @@ class MappIntelligenceProperties {
     public static final String MAX_FILE_LINES = "consumer.maxFileLines";
     public static final String MAX_FILE_DURATION = "consumer.maxFileDuration";
     public static final String MAX_FILE_SIZE = "consumer.maxFileSize";
+    /**
+     * @deprecated Every request is sent via SSL, the property is ignored.
+     */
+    @Deprecated
     public static final String FORCE_SSL = "consumer.forceSSL";
 
     public static final String TMP_DIR = "java.io.tmpdir";

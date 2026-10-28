@@ -176,13 +176,13 @@ public class MappIntelligenceProduct extends AbstractMappIntelligenceData {
      * @return MappIntelligenceProduct
      */
     public MappIntelligenceProduct setStatus(String s) {
-        if (s.equals(VIEW)
+        if (s != null && (s.equals(VIEW)
             || s.equals(BASKET)
             || s.equals(DELETE_FROM_CART)
             || s.equals(CHECKOUT)
             || s.equals(CONFIRMATION)
             || s.equals(ADD_TO_WISHLIST)
-            || s.equals(DELETE_FROM_WISHLIST))
+            || s.equals(DELETE_FROM_WISHLIST)))
         {
             this.status = s;
         }

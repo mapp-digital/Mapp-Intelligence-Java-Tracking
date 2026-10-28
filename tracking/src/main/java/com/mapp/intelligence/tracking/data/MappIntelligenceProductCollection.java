@@ -19,7 +19,10 @@ public class MappIntelligenceProductCollection {
      * @return MappIntelligenceProductCollection
      */
     public MappIntelligenceProductCollection add(MappIntelligenceProduct value) {
-        data.add(value);
+        if (value != null) {
+            data.add(value);
+        }
+
         return this;
     }
 

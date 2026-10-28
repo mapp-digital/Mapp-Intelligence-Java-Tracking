@@ -92,6 +92,9 @@ public class MappIntelligenceParameter {
     public static final String REGISTRATION_LAST_NAME = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(5);
     public static final String REGISTRATION_GENDER = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(6);
     public static final String REGISTRATION_TITLE = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(7);
+    public static final String REGISTRATION_ISO_CODE = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(8);
+    public static final String REGISTRATION_ISO_LANGUAGE = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(9);
+    public static final String REGISTRATION_TIMEZONE = MappIntelligenceCustomParameter.CUSTOM_REGISTRATION_PARAMETER.with(10);
 
     // custom parameter and category
     public static final String CUSTOM_SESSION_PARAMETER = "cs";
@@ -106,6 +109,7 @@ public class MappIntelligenceParameter {
 
     // cookie names
     public static final String SMART_PIXEL_COOKIE_NAME = "wtstp_eid";
+    public static final String TRANSMITTED_CAMPAIGNS_COOKIE_NAME = "wtstp_tcc";
     public static final String PIXEL_COOKIE_NAME = "wt3_eid";
     public static final String SERVER_COOKIE_NAME_PREFIX = "wteid_";
 

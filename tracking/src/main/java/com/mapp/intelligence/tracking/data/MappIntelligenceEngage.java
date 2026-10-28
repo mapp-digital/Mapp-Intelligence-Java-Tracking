@@ -44,15 +44,69 @@ public class MappIntelligenceEngage extends AbstractMappIntelligenceData {
         // do nothing
     }
 
+    /**
+     * Escapes a string for use inside a JSON string literal (RFC 8259). Without this, an attribute
+     * containing a quote or a backslash produces broken JSON in the "eaj" parameter, and allows
+     * injecting further fields.
+     *
+     * @param value Value to escape
+     *
+     * @return String
+     */
+    private String escapeJSON(String value) {
+        StringBuilder escaped = new StringBuilder(value.length());
+
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+
+            switch (c) {
+                case '"':
+                    escaped.append("\\\"");
+                    break;
+                case '\\':
+                    escaped.append("\\\\");
+                    break;
+                case '\b':
+                    escaped.append("\\b");
+                    break;
+                case '\f':
+                    escaped.append("\\f");
+                    break;
+                case '\n':
+                    escaped.append("\\n");
+                    break;
+                case '\r':
+                    escaped.append("\\r");
+                    break;
+                case '\t':
+                    escaped.append("\\t");
+                    break;
+                default:
+                    if (c < ' ') {
+                        escaped.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        escaped.append(c);
+                    }
+            }
+        }
+
+        return escaped.toString();
+    }
+
+    /**
+     * @param attr Attributes to serialize
+     *
+     * @return String
+     */
     private String toJSON(Map<String, String> attr) {
         StringBuilder jsonBuilder = new StringBuilder();
         jsonBuilder.append("{");
 
         for (Map.Entry<String, String> entry : attr.entrySet()) {
             jsonBuilder.append("\"")
-                .append(entry.getKey())
+                .append(this.escapeJSON(entry.getKey()))
                 .append("\":\"")
-                .append(entry.getValue())
+                .append(this.escapeJSON(entry.getValue()))
                 .append("\",");
         }
 
@@ -90,13 +144,31 @@ public class MappIntelligenceEngage extends AbstractMappIntelligenceData {
     }
 
     /**
+     * Takes over any value that can be represented as an attribute. Every value is serialized as a
+     * JSON string, which is the format the "eaj" parameter has always used.
+     *
      * @param a Key for the Engage Custom Profile Attribute
      * @param v Value for the Engage Custom Profile Attribute
      */
     private void addAttribute(String a, Object v) {
-        if ((v instanceof String && !((String) v).isEmpty()) || v instanceof Integer) {
-            this.attributes.put(a, v + "");
+        if (a == null || v == null) {
+            return;
         }
+
+        if (v instanceof String && ((String) v).isEmpty()) {
+            return;
+        }
+
+        // NaN and infinity have no JSON representation and are meaningless as an attribute value
+        if (v instanceof Double && !Double.isFinite((Double) v)) {
+            return;
+        }
+
+        if (v instanceof Float && !Float.isFinite((Float) v)) {
+            return;
+        }
+
+        this.attributes.put(a, String.valueOf(v));
     }
 
     /**
@@ -118,6 +190,10 @@ public class MappIntelligenceEngage extends AbstractMappIntelligenceData {
      * @return MappIntelligenceEngage
      */
     public MappIntelligenceEngage addAttributes(Map<String, Object> a) {
+        if (a == null) {
+            return this;
+        }
+
         for (Map.Entry<String, Object> entry : a.entrySet()) {
             this.addAttribute(entry.getKey(), entry.getValue());
         }

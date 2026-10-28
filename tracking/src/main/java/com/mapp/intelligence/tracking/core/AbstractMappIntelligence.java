@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
  * @author Mapp Digital c/o Webtrekk GmbH
  * @version 0.0.1
  */
-abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner implements MappIntelligence {
+abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner implements MappIntelligence, AutoCloseable {
     /**
      * Constant for tracking platform.
      */
@@ -70,6 +70,9 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
     protected AbstractMappIntelligence(MappIntelligenceConfig config) {
         Map<String, Object> mappIntelligenceConfig = config.build();
         this.queue = new MappIntelligenceQueue(mappIntelligenceConfig);
+        // the queue holds the requests and threads, not this instance - so an instance that is never
+        // closed can still be collected, and the queue is closed and flushed after it
+        this.registerResource(this.queue);
 
         int logLevel = (int) mappIntelligenceConfig.get("logLevel");
         MappIntelligenceLogger l = (MappIntelligenceLogger) mappIntelligenceConfig.get("logger");
@@ -86,11 +89,20 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
     }
 
     /**
-     * Sends all requests in the queue.
+     * Sends all remaining requests and releases the thread pools and the consumer.
+     *
+     * <p>Unlike {@link #flush()} this waits for the requests to be handed to the consumer. Call it
+     * when the instance is no longer needed - ideally through try-with-resources. Without it, the
+     * remaining requests are only sent, and the resources released, once the instance has been
+     * garbage collected or the JVM terminates - whichever comes first, and with no guarantee about
+     * when that is.</p>
+     *
+     * <p>Idempotent.</p>
      */
     @Override
-    protected void close() {
-        this.flush();
+    public void close() {
+        this.unregisterResource();
+        this.queue.close();
     }
 
     /**
@@ -105,6 +117,17 @@ abstract class AbstractMappIntelligence extends AbstractMappIntelligenceCleaner 
      */
     public final void setOnFlushComplete(BiConsumer<Boolean, Integer> callback) {
         this.queue.setOnFlushComplete(callback);
+    }
+
+    /**
+     * Returns the cookie with the campaigns already transmitted in this session, or null if nothing
+     * changed. It has to be added to the HTTP response, otherwise
+     * {@code MappIntelligenceCampaign.setOncePerSession(true)} cannot work across requests.
+     *
+     * @return MappIntelligenceCookie
+     */
+    public final MappIntelligenceCookie getTransmittedCampaignsCookie() {
+        return this.queue.getTransmittedCampaignsCookie();
     }
 
     /**

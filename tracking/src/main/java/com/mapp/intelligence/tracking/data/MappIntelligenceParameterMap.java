@@ -20,7 +20,10 @@ public class MappIntelligenceParameterMap {
      * @return MappIntelligenceParameterMap
      */
     public MappIntelligenceParameterMap add(String key, String value) {
-        data.put(key, value);
+        if (key != null && value != null) {
+            data.put(key, value);
+        }
+
         return this;
     }
 

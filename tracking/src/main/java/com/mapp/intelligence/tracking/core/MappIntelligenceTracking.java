@@ -5,6 +5,7 @@ import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 import com.mapp.intelligence.tracking.MappIntelligenceParameter;
 import com.mapp.intelligence.tracking.config.MappIntelligenceConfig;
 import com.mapp.intelligence.tracking.data.AbstractMappIntelligenceData;
+import com.mapp.intelligence.tracking.data.MappIntelligenceCampaign;
 import com.mapp.intelligence.tracking.data.MappIntelligenceDataMap;
 import com.mapp.intelligence.tracking.data.MappIntelligenceParameterMap;
 import com.mapp.intelligence.tracking.data.MappIntelligenceProduct;
@@ -76,12 +77,11 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
                 }
 
                 requestInformation.get(entry.getKey())[i] = this.convertToString(entry.getValue());
-
-                if (i == length - 1) {
-                    String[] joinValue = requestInformation.get(entry.getKey());
-                    returnValue.put(entry.getKey(), String.join(";", joinValue));
-                }
             }
+        }
+
+        for (Map.Entry<String, String[]> entry : requestInformation.entrySet()) {
+            returnValue.put(entry.getKey(), String.join(";", entry.getValue()));
         }
 
         return returnValue;
@@ -114,7 +114,9 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
      *
      * @return Queue ID
      */
-    private int addToRequestQueue(Map<String, String> requestData) {
+    private int addToRequestQueue(Map<String, String> data) {
+        // a copy: the map of the caller (e.g. a reused parameter map) must not keep the data of this request
+        Map<String, String> requestData = new HashMap<>(data);
         requestData.put(MappIntelligenceParameter.PIXEL_FEATURES, this.statistics.toString());
         requestData.put(MappIntelligenceParameter.VERSION, MappIntelligence.VERSION);
         requestData.put(MappIntelligenceParameter.TRACKING_PLATFORM, TRACKING_PLATFORM);
@@ -124,6 +126,27 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
         }
 
         return this.queue.add(requestData);
+    }
+
+    /**
+     * The campaign ID can come from the request URL (media codes) and can be suppressed by
+     * "once per session", both of which need the request context that only the queue has.
+     *
+     * @param campaign Campaign data
+     *
+     * @return Map(String, String)
+     */
+    private Map<String, String> getCampaignData(MappIntelligenceCampaign campaign) {
+        Map<String, String> campaignData = campaign.getQueryParameter();
+        String campaignId = this.queue.resolveCampaignId(campaign);
+
+        if (campaignId.isEmpty()) {
+            campaignData.remove(MappIntelligenceParameter.CAMPAIGN_ID);
+        } else {
+            campaignData.put(MappIntelligenceParameter.CAMPAIGN_ID, campaignId);
+        }
+
+        return campaignData;
     }
 
     /**
@@ -145,6 +168,8 @@ public final class MappIntelligenceTracking extends AbstractMappIntelligence {
                     products.add(mappIntelligenceProduct.getQueryParameter());
                 }
                 requestData.putAll(this.mergeProducts(products));
+            } else if (value instanceof MappIntelligenceCampaign) {
+                requestData.putAll(this.getCampaignData((MappIntelligenceCampaign) value));
             } else if (value != null) {
                 requestData.putAll(((AbstractMappIntelligenceData) value).getQueryParameter());
             }

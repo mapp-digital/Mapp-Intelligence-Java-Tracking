@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
@@ -33,6 +34,8 @@ public class MappIntelligenceHybridTest {
         System.setOut(this.originalOut);
 
         MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".tmp");
+
+        MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".lock");
         MappIntelligenceUnitUtil.deleteFiles(this.tempFilePath, this.tempFilePrefix, ".log");
     }
 
@@ -91,7 +94,7 @@ public class MappIntelligenceHybridTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203")
+            .setRequestURL("https://sub.domain.tld/pix?p=400,page&foo=bar&test=1%202%203")
             .setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
@@ -102,7 +105,7 @@ public class MappIntelligenceHybridTest {
         assertTrue(
             MappIntelligenceUnitUtil
                 .getFileContent(this.tempFilePath, this.tempFilePrefix, ".tmp")
-                .contains("wt?foo=bar&test=1%202%203")
+                .contains("wt?p=400,page&foo=bar&test=1%202%203")
         );
     }
 
@@ -111,7 +114,7 @@ public class MappIntelligenceHybridTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         MappIntelligenceConfig mic = (new MappIntelligenceConfig())
-            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc")
+            .setRequestURL("https://sub.domain.tld/pix?p=400,page&foo=bar&test=1%202%203#abc")
             .setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
@@ -122,7 +125,7 @@ public class MappIntelligenceHybridTest {
         assertTrue(
             MappIntelligenceUnitUtil
                 .getFileContent(this.tempFilePath, this.tempFilePrefix, ".tmp")
-                .contains("wt?foo=bar&test=1%202%203")
+                .contains("wt?p=400,page&foo=bar&test=1%202%203")
         );
     }
 
@@ -134,14 +137,51 @@ public class MappIntelligenceHybridTest {
         mic.setRequestQueues(0);
         MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
         mappIntelligence.setOnFlushComplete((success, queueId) -> latch.countDown());
-        mappIntelligence.track("https://sub.domain.tld/pix?foo=bar&test=1%202%203");
+        mappIntelligence.track("https://sub.domain.tld/pix?p=400,page&foo=bar&test=1%202%203");
         mappIntelligence.flush();
         assertTrue(latch.await(2000, TimeUnit.MILLISECONDS));
         assertTrue(
             MappIntelligenceUnitUtil
                 .getFileContent(this.tempFilePath, this.tempFilePrefix, ".tmp")
-                .contains("wt?foo=bar&test=1%202%203")
+                .contains("wt?p=400,page&foo=bar&test=1%202%203")
         );
+    }
+
+    @Test
+    public void testTrackInvalidPixelRequestIsIgnored() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig();
+        mic.setRequestQueues(0);
+        MappIntelligenceHybrid mappIntelligence = new MappIntelligenceHybrid(mic);
+
+        // no pixel parameter "p", an empty "p" or a too long request is not written
+        assertEquals(-1, mappIntelligence.track("https://sub.domain.tld/pix?foo=bar"));
+        assertEquals(-1, mappIntelligence.track("https://sub.domain.tld/pix?p=&foo=bar"));
+        assertEquals(-1, mappIntelligence.track("https://sub.domain.tld/pix?pp=1"));
+
+        StringBuilder longValue = new StringBuilder();
+        for (int i = 0; i < 70000; i++) {
+            longValue.append('a');
+        }
+        assertEquals(-1, mappIntelligence.track("https://sub.domain.tld/pix?p=400,page&x=" + longValue));
+        assertEquals(0, MappIntelligenceUnitUtil.getQueue(mappIntelligence, 0).size());
+
+        assertEquals(0, mappIntelligence.track("https://sub.domain.tld/pix?foo=bar&p=400,page"));
+        assertEquals(1, MappIntelligenceUnitUtil.getQueue(mappIntelligence, 0).size());
+        mappIntelligence.close();
+    }
+
+    @Test
+    public void testIsValidPixelRequest() {
+        StringBuilder value = new StringBuilder();
+        for (int i = 0; i < 65534; i++) {
+            value.append('a');
+        }
+
+        assertTrue(MappIntelligenceHybrid.isValidPixelRequest("p=600,page"));
+        assertFalse(MappIntelligenceHybrid.isValidPixelRequest(""));
+        assertFalse(MappIntelligenceHybrid.isValidPixelRequest(null));
+        assertTrue(MappIntelligenceHybrid.isValidPixelRequest("p=" + value));
+        assertFalse(MappIntelligenceHybrid.isValidPixelRequest("p=" + value + "a"));
     }
 
     @Test
@@ -358,7 +398,7 @@ public class MappIntelligenceHybridTest {
             .setConsumerType(MappIntelligenceConsumerType.CUSTOM)
             .setConsumer(new TestCustomPrintConsumer())
             .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc")
+            .setRequestURL("https://sub.domain.tld/pix?p=400,page&foo=bar&test=1%202%203#abc")
             .setRequestQueues(0);
 
         MappIntelligenceHybrid mappIntelligenceTracking = new MappIntelligenceHybrid(mic);
@@ -367,7 +407,7 @@ public class MappIntelligenceHybridTest {
         mappIntelligenceTracking.track();
         mappIntelligenceTracking.flush();
         assertTrue(latch.await(2000, TimeUnit.MILLISECONDS));
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("wt?foo=bar&test=1%202%203"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("wt?p=400,page&foo=bar&test=1%202%203"));
     }
 
     @Test
@@ -390,7 +430,7 @@ public class MappIntelligenceHybridTest {
             .setRequestInterval(1)
             .setRequestQueues(0)
             .setLogger(MappIntelligenceUnitUtil.getCustomLogger())
-            .setRequestURL("https://sub.domain.tld/pix?foo=bar&test=1%202%203#abc");
+            .setRequestURL("https://sub.domain.tld/pix?p=400,page&foo=bar&test=1%202%203#abc");
 
         MappIntelligenceHybrid mappIntelligenceTracking = new MappIntelligenceHybrid(mic);
         mappIntelligenceTracking.setOnFlushComplete((success, queueId) -> latch.countDown());
@@ -398,6 +438,6 @@ public class MappIntelligenceHybridTest {
         mappIntelligenceTracking.track();
         assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-        assertTrue(this.outContent.toString(), this.outContent.toString().contains("wt?foo=bar&test=1%202%203"));
+        assertTrue(this.outContent.toString(), this.outContent.toString().contains("wt?p=400,page&foo=bar&test=1%202%203"));
     }
 }

@@ -440,6 +440,9 @@ public class MappIntelligenceTrackingTest {
             .setFirstName("John")
             .setLastName("Doe")
             .setGroupId("abc123")
+            .setIsoCode("DE")
+            .setIsoLanguage("de")
+            .setTimezone("Europe/Berlin")
             .setOptIn(true);
 
         Map<String, Object> engageAttribute = new HashMap<String, Object>();
@@ -515,6 +518,9 @@ public class MappIntelligenceTrackingTest {
         assertTrue(request.matches(".*&er5=Doe.*"));
         assertTrue(request.matches(".*&er1=john%40doe\\.com.*"));
         assertTrue(request.matches(".*&er2=abc123.*"));
+        assertTrue(request.matches(".*&er8=DE.*"));
+        assertTrue(request.matches(".*&er9=de.*"));
+        assertTrue(request.matches(".*&er10=Europe%2FBerlin.*"));
         assertTrue(MappIntelligenceUnitUtil.checkStatistics(request, "34"));
     }
 
@@ -1165,5 +1171,41 @@ public class MappIntelligenceTrackingTest {
 
         Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
         assertEquals(0, requests.size());
+    }
+
+    @Test
+    public void testProductCollectionWithDifferentParameterAndCategorySets() {
+        MappIntelligenceConfig mic = new MappIntelligenceConfig("111111111111111", "analytics01.wt-eu02.net");
+        mic.setRequestQueues(0);
+        MappIntelligenceTracking mappIntelligenceTracking = new MappIntelligenceTracking(mic);
+
+        MappIntelligenceProduct product1 = (new MappIntelligenceProduct("A"))
+            .setCategory(1, "shoes")
+            .setParameter(9, "red");
+
+        MappIntelligenceProduct product2 = new MappIntelligenceProduct("B");
+
+        MappIntelligenceProduct product3 = (new MappIntelligenceProduct("C"))
+            .setCategory(2, "sale")
+            .setParameter(10, "xl");
+
+        assertTrue(mappIntelligenceTracking.track((new MappIntelligenceDataMap())
+            .page(new MappIntelligencePage("en.page.test"))
+            .product((new MappIntelligenceProductCollection())
+                .add(product1).add(product2).add(product3)
+            )
+        ) > -1);
+
+        Deque<String> requests = MappIntelligenceUnitUtil.getQueue(mappIntelligenceTracking, 0);
+        assertEquals(1, requests.size());
+
+        String request = requests.peek();
+        assertTrue(request.matches(".*&ba=A%3BB%3BC.*"));
+        // keys of the first product must survive the merge
+        assertTrue(request.matches(".*&ca1=shoes%3B%3B.*"));
+        assertTrue(request.matches(".*&cb9=red%3B%3B.*"));
+        // keys of the last product must survive as well
+        assertTrue(request.matches(".*&ca2=%3B%3Bsale.*"));
+        assertTrue(request.matches(".*&cb10=%3B%3Bxl.*"));
     }
 }

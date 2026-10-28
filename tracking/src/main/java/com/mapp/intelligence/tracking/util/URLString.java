@@ -27,7 +27,8 @@ public final class URLString {
         String[] pairs = query.split("&");
 
         for (String pair : pairs) {
-            String[] keyValue = pair.split("=");
+            // limit 2, otherwise a value that contains "=" itself (base64, media codes) is dropped
+            String[] keyValue = pair.split("=", 2);
             if (keyValue.length == 2) {
                 queryPairs.put(URLString.decode(keyValue[0]), URLString.decode(keyValue[1]));
             }
@@ -37,6 +38,10 @@ public final class URLString {
     }
 
     /**
+     * Decodes a UTF-8 percent-encoded string. Values that are not valid percent-encoding (e.g. a
+     * user agent containing a bare "%") are returned unchanged instead of throwing, because the
+     * callers pass in client-controlled header and cookie values.
+     *
      * @param str String to be UTF-8 decode
      *
      * @return String
@@ -45,8 +50,8 @@ public final class URLString {
         String decodedString = str;
         try {
             decodedString = URLDecoder.decode(str, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException | NullPointerException e) {
-            // do nothing
+        } catch (UnsupportedEncodingException | IllegalArgumentException | NullPointerException e) {
+            decodedString = str;
         }
 
         return ((decodedString != null) ? decodedString : "");

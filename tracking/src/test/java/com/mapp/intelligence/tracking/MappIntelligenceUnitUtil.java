@@ -1,5 +1,6 @@
 package com.mapp.intelligence.tracking;
 
+import java.nio.channels.FileChannel;
 import com.mapp.intelligence.tracking.consumer.MappIntelligenceConsumerFile;
 import com.mapp.intelligence.tracking.core.MappIntelligenceHybrid;
 import com.mapp.intelligence.tracking.core.MappIntelligenceTracking;
@@ -158,24 +159,36 @@ public class MappIntelligenceUnitUtil {
     }
 
     /**
-     * @param consumer Mapp Intelligence consumer
-     * @return FileWriter
+     * @param consumer Mapp Intelligence file consumer
+     * @return The file state the consumer shares with all consumers for the same path and prefix
      */
-    public static FileWriter getFileWriter(MappIntelligenceConsumer consumer) {
-        FileWriter fileWriter = null;
+    public static Object getSharedFile(MappIntelligenceConsumer consumer) throws NoSuchFieldException, IllegalAccessException {
+        Field sharedFileField = MappIntelligenceConsumerFile.class.getDeclaredField("sharedFile");
+        sharedFileField.setAccessible(true);
+
+        return sharedFileField.get(consumer);
+    }
+
+    /**
+     * @param consumer Mapp Intelligence consumer
+     * @return Channel of the open file, null if no file is open
+     */
+    public static FileChannel getFileChannel(MappIntelligenceConsumer consumer) {
+        FileChannel channel = null;
 
         try {
-            Field fileWriterField = MappIntelligenceConsumerFile.class.getDeclaredField("fileWriter");
-            fileWriterField.setAccessible(true);
+            Object sharedFile = getSharedFile(consumer);
+            Field channelField = sharedFile.getClass().getDeclaredField("channel");
+            channelField.setAccessible(true);
 
-            fileWriter = (FileWriter) fileWriterField.get(consumer);
+            channel = (FileChannel) channelField.get(sharedFile);
 
-            fileWriterField.setAccessible(false);
+            channelField.setAccessible(false);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             // do nothing
         }
 
-        return fileWriter;
+        return channel;
     }
 
     /**

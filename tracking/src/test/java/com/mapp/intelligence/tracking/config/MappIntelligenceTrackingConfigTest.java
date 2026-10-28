@@ -255,11 +255,12 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(300, config.get("maxFileLines"));
         assertEquals(60000, config.get("maxFileDuration"));
         assertEquals(12 * 1024 * 1024, config.get("maxFileSize"));
-        assertEquals(false, config.get("forceSSL"));
+        // forceSSL is deprecated and ignored, every request is sent via SSL
+        assertEquals(true, config.get("forceSSL"));
         assertEquals(2, ((List<String>) config.get("useParamsForDefaultPageName")).size());
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
-        assertEquals(33, config.get("statistics"));
+        assertEquals(35, config.get("statistics"));
         assertEquals(0, ((List<String>) config.get("containsInclude")).size());
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
@@ -372,11 +373,12 @@ public class MappIntelligenceTrackingConfigTest {
         assertEquals(300, config.get("maxFileLines"));
         assertEquals(60000, config.get("maxFileDuration"));
         assertEquals(12 * 1024 * 1024, config.get("maxFileSize"));
-        assertEquals(false, config.get("forceSSL"));
+        // forceSSL is deprecated and ignored, every request is sent via SSL
+        assertEquals(true, config.get("forceSSL"));
         assertEquals(2, ((List<String>) config.get("useParamsForDefaultPageName")).size());
         assertTrue(((String) config.get("filePath")).isEmpty());
         assertTrue(((String) config.get("filePrefix")).isEmpty());
-        assertEquals(33, config.get("statistics"));
+        assertEquals(35, config.get("statistics"));
         assertEquals(0, ((List<String>) config.get("containsInclude")).size());
         assertEquals(0, ((List<String>) config.get("containsExclude")).size());
         assertEquals(0, ((List<String>) config.get("matchesInclude")).size());
@@ -974,5 +976,22 @@ public class MappIntelligenceTrackingConfigTest {
         Map<String, Object> config = mappIntelligenceConfig.build();
         assertEquals(true, config.get("activateAdvancedPermission"));
         assertEquals(3, config.get("advancedPermissionCategory"));
+    }
+
+    @Test
+    public void testClientControlledHeadersWithInvalidPercentEncoding() {
+        MappIntelligenceConfig mappIntelligenceConfig = new MappIntelligenceConfig();
+        mappIntelligenceConfig
+            .setUserAgent("Mozilla/5.0 (X11; 100% CPU) Gecko/20100101 Firefox/71.0")
+            .setRemoteAddress("127.0.0.1%")
+            .setClientHintUserAgentPlatform("\"Windows 100%\"")
+            .addCookie("wtstp_eid", "123456789%zz");
+
+        Map<String, Object> config = mappIntelligenceConfig.build();
+
+        assertEquals("Mozilla/5.0 (X11; 100% CPU) Gecko/20100101 Firefox/71.0", config.get("userAgent"));
+        assertEquals("127.0.0.1%", config.get("remoteAddress"));
+        assertEquals("\"Windows 100%\"", config.get("clientHintUserAgentPlatform"));
+        assertEquals("123456789%zz", ((Map<String, String>) config.get("cookie")).get("wtstp_eid"));
     }
 }

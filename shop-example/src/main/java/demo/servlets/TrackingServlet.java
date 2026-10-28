@@ -5,15 +5,12 @@ import com.mapp.intelligence.tracking.MappIntelligenceCookie;
 import com.mapp.intelligence.tracking.config.MappIntelligenceConfig;
 import com.mapp.intelligence.tracking.core.MappIntelligenceHybrid;
 
-import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -32,7 +29,10 @@ public class TrackingServlet  extends HttpServlet {
             .setTrackId("123451234512345")
             .setTrackDomain("analytics01.wt-eu02.net")
             .setReferrerURL(request.getHeader("Referer"))
-            .setRequestURL(request.getRequestURL().toString())
+            // with the query string: the hybrid forwards the query parameters of the pixel request
+            .setRequestURL(
+                request.getRequestURL() + (request.getQueryString() != null ? "?" + request.getQueryString() : "")
+            )
             .setRemoteAddress(request.getRemoteAddr())
             .setUserAgent(request.getHeader("User-Agent"));
 
@@ -43,28 +43,33 @@ public class TrackingServlet  extends HttpServlet {
             }
         }
 
-        MappIntelligenceHybrid mappHybrid = new MappIntelligenceHybrid(mappConfig);
+        // the instance carries the data of this request, so it is created and closed per request
+        try (MappIntelligenceHybrid mappHybrid = new MappIntelligenceHybrid(mappConfig)) {
+            mappHybrid.track();
 
-        mappHybrid.track();
+            byte[] imgBytes = mappHybrid.getResponseAsBytes();
 
-        response.setContentType("image/gif");
-        response.setContentLength(43);
+            response.setContentType("image/gif");
+            response.setContentLength(imgBytes.length);
 
-        MappIntelligenceCookie mappUserCookie = mappHybrid.getUserIdCookie(MappIntelligence.V4, MappIntelligence.CLIENT_SIDE_COOKIE);
-        if (mappUserCookie != null) {
-            Cookie mappUserCookieResponse = new Cookie(mappUserCookie.getName(), mappUserCookie.getValue());
-            mappUserCookieResponse.setHttpOnly(mappUserCookie.isHttpOnly());
-            mappUserCookieResponse.setSecure(mappUserCookie.isSecure());
-            mappUserCookieResponse.setDomain(mappUserCookie.getDomain());
-            mappUserCookieResponse.setPath(mappUserCookie.getPath());
-            mappUserCookieResponse.setMaxAge(mappUserCookie.getMaxAge());
-            response.addCookie(mappUserCookieResponse);
+            MappIntelligenceCookie mappUserCookie = mappHybrid.getUserIdCookie(MappIntelligence.V4, MappIntelligence.CLIENT_SIDE_COOKIE);
+            if (mappUserCookie != null) {
+                Cookie mappUserCookieResponse = new Cookie(mappUserCookie.getName(), mappUserCookie.getValue());
+                mappUserCookieResponse.setHttpOnly(mappUserCookie.isHttpOnly());
+                mappUserCookieResponse.setSecure(mappUserCookie.isSecure());
+                // the v4 and smart pixel cookies have no domain (empty string)
+                if (!mappUserCookie.getDomain().isEmpty()) {
+                    mappUserCookieResponse.setDomain(mappUserCookie.getDomain());
+                }
+                mappUserCookieResponse.setPath(mappUserCookie.getPath());
+                mappUserCookieResponse.setMaxAge(mappUserCookie.getMaxAge());
+                response.addCookie(mappUserCookieResponse);
+            }
+
+            // write the bytes as they are: re-encoding them would not match the content length above
+            OutputStream out = response.getOutputStream();
+            out.write(imgBytes);
         }
-
-        byte[] imgBytes = mappHybrid.getResponseAsBytes();
-        OutputStream out = response.getOutputStream();
-        BufferedImage bufImg = ImageIO.read(new ByteArrayInputStream(imgBytes));
-        ImageIO.write(bufImg, "gif", out);
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

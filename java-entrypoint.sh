@@ -27,8 +27,14 @@ else
 fi
 
 mkdir -p /usr/share/maven
-curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar -xzC /usr/share/maven --strip-components=1
-ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+# without pipefail a failing curl or tar goes unnoticed and the build only fails later with "mvn: command not found"
+set -o pipefail
+if ! curl -fsSL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar -xzC /usr/share/maven --strip-components=1; then
+    echo "ERROR: could not download or extract Maven ${MAVEN_VERSION}"
+    exit 1
+fi
+set +o pipefail
+ln -s /usr/share/maven/bin/mvn /usr/bin/mvn || exit 1
 
 echo "add environment variables"
 export MAVEN_HOME=/usr/share/maven
@@ -59,23 +65,27 @@ else
     sudo -su ${USER_NAME} echo "${INSTALLED_JAVA_VERSION}" > ./java-version.txt
 fi
 
-echo "ckeck for java security manager"
-SECURITY_MANAGER_COMMAND="-Dwebtrekk.security.manager.key=foo"
-SECURITY_MANAGER_VALUE="-Dwebtrekk.security.manager.value=bar"
-if [[ "$INSTALLED_JAVA_VERSION" > "16" ]]; then
-    SECURITY_MANAGER_COMMAND="-Dwebtrekk.security.manager.key=java.security.manager"
-    SECURITY_MANAGER_VALUE="-Dwebtrekk.security.manager.value=allow"
+if [ "${BUILD_TYPE}" = "stress-test" ]; then
+    echo "stress test of the file consumer and the cron job (several JVMs)"
+    STRESS_COMMAND="mvn ${EXLUDE_SHOP_EXAMPLE} test -DfailIfNoTests=false -Dtest=MappIntelligenceStressTest -DstressTest=true ${STRESS_ARGS}"
+
+    if [ "${APT_GET}" = "file" ]; then
+        su -c "${STRESS_COMMAND}" -m "${USER_NAME}"
+    else
+        sudo -su ${USER_NAME} ${STRESS_COMMAND}
+    fi
+
+    exit $?
 fi
-export SECURITY_MANAGER="$SECURITY_MANAGER_COMMAND $SECURITY_MANAGER_VALUE"
 
 if [ "${BUILD_TYPE}" = "test" ]; then
     echo "test java lib"
 
     if [ "${APT_GET}" = "file" ]; then
-        echo "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura"
-        su -c "mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura" -m "${USER_NAME}"
+        echo "mvn ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura"
+        su -c "mvn ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura" -m "${USER_NAME}"
     else
-        sudo -su ${USER_NAME} mvn ${SECURITY_MANAGER} ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura
+        sudo -su ${USER_NAME} mvn ${EXLUDE_SHOP_EXAMPLE} clean test jacoco:report cobertura:cobertura
     fi
 
     TEST_STATUS=$?
@@ -126,7 +136,7 @@ if [ "${APT_GET}" = "file" ]; then
 else
     sudo -su ${USER_NAME} mvn clean checkstyle:check package -B
     sudo -su ${USER_NAME} cp ./tracking/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
-    sudo -su ${USER_NAME} cp ./cronjob/target/mapp-intelligence-java-tracking.jar ./dist/mapp-intelligence-java-tracking.jar
+    sudo -su ${USER_NAME} cp ./cronjob/target/mapp-intelligence-java-cronjob.jar ./dist/mapp-intelligence-java-cronjob.jar
 fi
 
 exit 0

@@ -52,6 +52,18 @@ public class MappIntelligenceRegistration extends AbstractMappIntelligenceData {
      */
     private String title = "";
     /**
+     * The ISO code of the user to be used in Mapp Engage.
+     */
+    private String isoCode = "";
+    /**
+     * The ISO language of the user to be used in Mapp Engage.
+     */
+    private String isoLanguage = "";
+    /**
+     * The timezone of the user to be used in Mapp Engage.
+     */
+    private String timezone = "";
+    /**
      * Provide information that the user consented to use their data.
      * <ul>
      *     <li>true: User consent</li>
@@ -81,6 +93,9 @@ public class MappIntelligenceRegistration extends AbstractMappIntelligenceData {
             queryList.put("lastName", MappIntelligenceParameter.REGISTRATION_LAST_NAME);
             queryList.put("gender", MappIntelligenceParameter.REGISTRATION_GENDER);
             queryList.put("title", MappIntelligenceParameter.REGISTRATION_TITLE);
+            queryList.put("isoCode", MappIntelligenceParameter.REGISTRATION_ISO_CODE);
+            queryList.put("isoLanguage", MappIntelligenceParameter.REGISTRATION_ISO_LANGUAGE);
+            queryList.put("timezone", MappIntelligenceParameter.REGISTRATION_TIMEZONE);
         }
 
         return queryList;
@@ -98,6 +113,9 @@ public class MappIntelligenceRegistration extends AbstractMappIntelligenceData {
         data.put("lastName", this.lastName);
         data.put("gender", this.gender);
         data.put("title", this.title);
+        data.put("isoCode", this.isoCode);
+        data.put("isoLanguage", this.isoLanguage);
+        data.put("timezone", this.timezone);
         data.put("optIn", this.optIn);
 
         return data;
@@ -176,6 +194,39 @@ public class MappIntelligenceRegistration extends AbstractMappIntelligenceData {
      */
     public MappIntelligenceRegistration setTitle(String t) {
         this.title = t;
+
+        return this;
+    }
+
+    /**
+     * @param i The ISO code of the user to be used in Mapp Engage.
+     *
+     * @return this
+     */
+    public MappIntelligenceRegistration setIsoCode(String i) {
+        this.isoCode = i;
+
+        return this;
+    }
+
+    /**
+     * @param i The ISO language of the user to be used in Mapp Engage.
+     *
+     * @return this
+     */
+    public MappIntelligenceRegistration setIsoLanguage(String i) {
+        this.isoLanguage = i;
+
+        return this;
+    }
+
+    /**
+     * @param t The timezone of the user to be used in Mapp Engage.
+     *
+     * @return this
+     */
+    public MappIntelligenceRegistration setTimezone(String t) {
+        this.timezone = t;
 
         return this;
     }

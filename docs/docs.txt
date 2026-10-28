@@ -1,0 +1,17 @@
+https://docs.mapp.com/docs/java-library
+    https://docs.mapp.com/docs/data-transfer-consumer
+    https://docs.mapp.com/docs/integration-and-configuration
+    https://docs.mapp.com/docs/data-objects-mapp-intelligence-server2server-java
+        https://docs.mapp.com/docs/page-data-object-java-library-s2s
+        https://docs.mapp.com/docs/event-data-object-java-library-s2s
+        https://docs.mapp.com/docs/campaign-data-object-java-library-s2s
+        https://docs.mapp.com/docs/user-data-object-java-library-s2s
+        https://docs.mapp.com/docs/product-data-object-java-library-s2s
+        https://docs.mapp.com/docs/order-data-object-java-library-s2s
+        https://docs.mapp.com/docs/session-data-object-java-library-s2s
+        https://docs.mapp.com/docs/mapp-engage-data-object-java-library-s2s
+        https://docs.mapp.com/docs/request-parameters-data-object-java-library-s2s
+    https://docs.mapp.com/docs/classes
+    https://docs.mapp.com/docs/interfaces
+    https://docs.mapp.com/docs/cron-job
+    https://docs.mapp.com/docs/java-changelog

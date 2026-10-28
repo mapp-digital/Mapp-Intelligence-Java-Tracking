@@ -2,10 +2,10 @@ package com.mapp.intelligence.tracking.consumer;
 
 import com.mapp.intelligence.tracking.MappIntelligenceConsumer;
 import com.mapp.intelligence.tracking.MappIntelligenceLogger;
-import com.mapp.intelligence.tracking.util.AbstractMappIntelligenceCleaner;
 import com.mapp.intelligence.tracking.util.MappIntelligenceDebugLogger;
 import com.mapp.intelligence.tracking.MappIntelligenceMessages;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Mapp Digital c/o Webtrekk GmbH
  * @version 0.0.1
  */
-abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligenceCleaner implements MappIntelligenceConsumer {
+abstract class AbstractMappIntelligenceConsumer implements MappIntelligenceConsumer, AutoCloseable {
     /**
      * Constant for max payload size.
      */
@@ -64,15 +64,17 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
      */
     private final String trackDomain;
     /**
-     * Sends every request via SSL.
+     * Whether a subclass overrides {@link #sendBatch(List)} but not {@link #send(List)}. Such a
+     * subclass was written against the boolean API, and its override has to stay in effect although
+     * the scheduler now calls {@code send()}.
      */
-    private final boolean forceSSL;
+    private final boolean legacySendBatchOverride;
 
     /**
      * @param config Mapp Intelligence configuration
      */
     protected AbstractMappIntelligenceConsumer(Map<String, Object> config) {
-        this.forceSSL = (boolean) config.getOrDefault("forceSSL", true);
+        this.legacySendBatchOverride = this.overridesOnlySendBatch();
         this.trackDomain = (String) config.getOrDefault("trackDomain", "");
         this.trackId = (String) config.getOrDefault("trackId", "");
 
@@ -84,22 +86,26 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
      * @return String
      */
     protected final String getUrl() {
-        String url = ((this.forceSSL) ? "https://" : "http://");
-        url += this.trackDomain;
+        // every request is sent via SSL, the former option forceSSL is ignored
+        String url = "https://" + this.trackDomain;
         url += "/" + this.trackId + "/batch";
 
         return url;
     }
 
     /**
+     * Builds the payload of a batch.
+     *
      * @param batchContent List of tracking requests
-     * @return String
+     *
+     * @return The payload, or {@code null} if the batch exceeds a hard limit and can therefore never
+     *         be sent - a caller must discard such a batch instead of requeueing it
      */
     protected final String verifyPayload(List<String> batchContent) {
         int currentBatchSize = batchContent.size();
         if (currentBatchSize > MAX_BATCH_SIZE) {
             this.logger.error(MappIntelligenceMessages.TO_LARGE_BATCH_SIZE, MAX_BATCH_SIZE, currentBatchSize);
-            return "";
+            return null;
         }
 
         String payload = String.join(System.lineSeparator(), batchContent);
@@ -107,9 +113,91 @@ abstract class AbstractMappIntelligenceConsumer extends AbstractMappIntelligence
             float length = payload.length();
             double currentPayloadSize = Math.round(length / INTEGER_1024 / INTEGER_1024 * DOUBLE_100) / DOUBLE_100;
             this.logger.error(MappIntelligenceMessages.TO_LARGE_PAYLOAD_SIZE, currentPayloadSize);
-            return "";
+            return null;
         }
 
         return payload;
+    }
+
+    /**
+     * A batch that exceeds a hard limit is identical on every retry, so requeueing it blocks the
+     * queue for everything behind it. It is dropped instead, with an error entry.
+     *
+     * @param batchContent List of tracking requests
+     */
+    protected final void discardUnprocessableBatch(List<String> batchContent) {
+        this.logger.error(MappIntelligenceMessages.DISCARD_UNPROCESSABLE_BATCH, batchContent.size());
+    }
+
+    /**
+     * @return true if the runtime class overrides sendBatch() but not send()
+     */
+    private boolean overridesOnlySendBatch() {
+        return this.declaringClassOf("sendBatch") != AbstractMappIntelligenceConsumer.class
+            && this.declaringClassOf("send") == AbstractMappIntelligenceConsumer.class;
+    }
+
+    /**
+     * Finds the class that really implements a method. {@code getMethod()} cannot be used: javac adds
+     * bridge methods for the public methods of this package-private class to its public subclasses,
+     * so every method would appear to be declared there.
+     *
+     * @param methodName Name of a method that takes the batch content
+     *
+     * @return The implementing class, or null if none was found
+     */
+    private Class<?> declaringClassOf(String methodName) {
+        for (Class<?> c = this.getClass(); c != null; c = c.getSuperclass()) {
+            try {
+                Method method = c.getDeclaredMethod(methodName, List.class);
+                if (!method.isBridge() && !method.isSynthetic()) {
+                    return c;
+                }
+            } catch (NoSuchMethodException e) {
+                // not declared on this level, go on with the superclass
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Sends the batch - the actual work of each consumer.
+     *
+     * @param batchContent List of tracking requests
+     *
+     * @return Result of this batch
+     */
+    protected abstract BatchResult sendBatchContent(List<String> batchContent);
+
+    /**
+     * @param batchContent List of tracking requests
+     *
+     * @return Result of this batch
+     */
+    @Override
+    public BatchResult send(List<String> batchContent) {
+        if (this.legacySendBatchOverride) {
+            // keep an existing sendBatch() override of a subclass in effect
+            return this.sendBatch(batchContent) ? BatchResult.SENT : BatchResult.RETRY;
+        }
+
+        return this.sendBatchContent(batchContent);
+    }
+
+    /**
+     * A discarded batch counts as sent here: it must leave the queue, otherwise it blocks everything
+     * behind it. Use {@link #send(List)} to tell the two apart.
+     *
+     * <p>Calls {@link #sendBatchContent(List)} and not {@link #send(List)}, so a subclass override that
+     * calls {@code super.sendBatch()} cannot end up in itself again.</p>
+     *
+     * @param batchContent List of tracking requests
+     *
+     * @return boolean
+     */
+    @Override
+    public boolean sendBatch(List<String> batchContent) {
+        return this.sendBatchContent(batchContent) != BatchResult.RETRY;
     }
 }
